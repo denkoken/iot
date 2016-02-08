@@ -26,6 +26,11 @@ io.of('/camera').on('connection', function(socket) {
       socket.emit('frame', camera.get());
   });
 
+  socket.on('move', function(data) {
+      console.log(data.x);//[-1:1]
+      console.log(data.y);
+  });
+
   socket.on('disconnect', function() {
       console.log('disconnect');
   });

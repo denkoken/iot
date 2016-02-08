@@ -17,9 +17,15 @@ var ImageViewer = React.createClass({
       socket.emit('frame');
     };
   },
+  handleClick(e) {
+    var rect = e.target.getBoundingClientRect();
+    var click_x = (e.clientX - rect.left) / this.width * 2.0 - 1.0;
+    var click_y = (e.clientY - rect.top) / this.height * 2.0 - 1.0;
+    socket.emit('move', {x: click_x, y: click_y});
+  },
   render(){
     return <canvas ref='canvas' width={this.width} height={this.height}
-            style={{backgroundColor: 'grey'}} />;
+            style={{backgroundColor: 'grey'}} onClick={this.handleClick} />;
   }
 });
 
