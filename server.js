@@ -21,7 +21,7 @@ io.of('/camera').on('connection', function(socket) {
   console.log('connection');
 
   socket.emit('frame', camera.get());
-  socket.on('frame', function () {
+  socket.on('frame', function() {
       camera.update();
       socket.emit('frame', camera.get());
   });
