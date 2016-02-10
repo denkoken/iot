@@ -15,7 +15,7 @@ var Camera = require('./camera').Camera
 var camera = new Camera(0);
 
 var Serial = require('./serial').Serial
-var serial = new Serial('/dev/tty.usbmodem1421');
+var serial = new Serial('/dev/ttyACM0');
 
 
 app.use(log4js.connectLogger(log4js.getLogger('express')));
@@ -31,7 +31,7 @@ io.of('/camera').on('connection', function(socket) {
   // capture frame
   socket.emit('frame', camera.get());
   socket.on('frame', function() {
-      camera.update();
+      camera.update(); // TODO(takiyu): Fix for multi client
       socket.emit('frame', camera.get());
   });
 
@@ -39,7 +39,8 @@ io.of('/camera').on('connection', function(socket) {
   socket.on('move', function(data) {
       logger.debug('move' + data.x + " " + data.y);
 
-      serial.setCameraAngle(1, 25);
+      serial.setCameraAngle(0, data.x * 50 + 50, function () {
+      serial.setCameraAngle(1, data.y * 50 + 50); });
   });
 
   // disconnect

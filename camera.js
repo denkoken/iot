@@ -14,25 +14,43 @@ var SimpleImage = function(encode){
 }
 
 exports.Camera = function(id) {
-  logger.info('open camera (' + id + ')');
+  var that = this;
 
+  this.settings = {
+    size: {width: 320, height: 240},
+    min_interval: 100,
+    resize: {enabled: false, width: 320, height: 240},
+    encode: {ext: ".jpg", jpegQuality: 80}
+  };
+
+  // open camera
   try {
+    logger.info('open camera (' + id + ')');
     this.camera = new cv.VideoCapture(id);
   } catch(e) {
     logger.error(e.message);
   }
 
-  this.settings = {
-    resize: {enabled: true, width: 320, height: 240},
-    encode: {ext: ".jpg", jpegQuality: 80}
-  };
-
   // encoded capture
   var buff = SimpleImage(this.settings.encode);
+  // last update time (ms)
+  var last_update = Date.now();
 
-  var that = this;
+  // capture size
+  this.setCaptureSize = function(width, height) {
+    if (width) this.settings.size.width = width;
+    if (height) this.settings.size.height = height;
+    this.camera.setWidth(this.settings.size.width);
+    this.camera.setHeight(this.settings.size.height);
+    logger.info('set capture size (' +
+                this.settings.size.width + ', ' +
+                this.settings.size.height + ')');
+  }
+
+  // capture
   this.update = function() {
-    if(this.camera){
+    var interval = Date.now() - last_update;
+    if(this.camera &&  interval > that.settings.min_interval){
       this.camera.read(function(err, im) {
           if (!err) {
             // image resize
@@ -40,16 +58,19 @@ exports.Camera = function(id) {
             if (resize.enabled) {
               im.resize(resize.width, resize.height);
             }
-            // encode
+            // save
             buff = im.toBuffer(that.settings.encode);
+            last_update = Date.now();
           }
       });
     }
   }
 
+  // get encoded image
   this.get = function() {
     return buff;
   }
 
+  this.setCaptureSize();
   this.update(); // initial update
 };

@@ -11,7 +11,7 @@
     }
   ],
   "levels": {
-    "system": "Debug",
+    "system": "All",
     "express": "Info"
   },
   "replaceConsole": true
