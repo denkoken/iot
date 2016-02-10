@@ -1,0 +1,18 @@
+{
+  "appenders": [
+    {
+      "type":     "file",
+      "category": ["system", "express"],
+      "maxLogSize": 1048576,
+      "filename": "logs/log.log"
+    },
+    {
+      "type": "console"
+    }
+  ],
+  "levels": {
+    "system": "Debug",
+    "express": "Info"
+  },
+  "replaceConsole": true
+}

@@ -29,17 +29,18 @@ var ImageViewer = React.createClass({
   }
 });
 
-var CommentBox = React.createClass({
-  render: function() {
+var IOT = React.createClass({
+  render(){
     return (
-      <div className="commentBox">
-        Hello, world! I am a CommentBox.
+      <div>
+        <ImageViewer />
+        Hello, world!.
       </div>
     );
   }
 });
 
 ReactDOM.render(
-  <ImageViewer />,
+  <IOT />,
   document.getElementById('content')
 );
