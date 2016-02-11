@@ -20,12 +20,8 @@ exports.Serial = function(dev){
   });
 
   this.setCameraAngle = function(axis, angle, callback) {
-    if(!this.sp.isOpen()){
-      if(callback) callback();
-      return;
-    }
+    if(!this.sp.isOpen()) return;
 
-    angle = parseInt(angle);
     if(angle >= 40){
       logger.error("angle is too large : angle=" + angle); 
       return;
@@ -40,10 +36,7 @@ exports.Serial = function(dev){
   };
 
   this.getCameraAngle = function(axis, callback) {
-    if(!this.sp.isOpen()){
-      if(callback) callback();
-      return;
-    }
+    if(!this.sp.isOpen()) return;
 
     var data = [0 | (axis ? 1 : 0) | (1 << 6)];
     this.sp.write(data, function(err, res){
@@ -53,10 +46,7 @@ exports.Serial = function(dev){
   };
 
   this.setLed = function(value, callback) {
-    if(!this.sp.isOpen()){
-      if(callback) callback();
-      return;
-    }
+    if(!this.sp.isOpen()) return;
 
     var data = [0 | (1 << 5) | (value ? 1 : 0)];
     this.sp.write(data, function(err, res){
