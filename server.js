@@ -1,21 +1,22 @@
 var log4js = require('log4js');
-log4js.configure('log_settings.json');
+log4js.configure('./config/log.json');
 var logger = log4js.getLogger('system');
 logger.info('start server');
 
 var express = require('express')
 var http = require('http');
 var socketio = require('socket.io');
+var conf = require('config');
 
 var app = express();
 var server = http.createServer(app);
 var io = socketio(server);
 
 var Camera = require('./utils/camera').Camera
-var camera = new Camera(0);
+var camera = new Camera(conf.camera_id);
 
-var Serial = require('./utils/serial').Serial
-var serial = new Serial('/dev/tty.usbmodem1421');
+var Serial = require(conf.serial_util).Serial
+var serial = new Serial(conf.serial_dev);
 
 
 app.use(log4js.connectLogger(log4js.getLogger('express')));

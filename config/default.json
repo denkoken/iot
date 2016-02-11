@@ -1,0 +1,5 @@
+{
+  "camera_id": 0,
+  "serial_dev": "/dev/ttyACM0",
+  "serial_util": "./utils/serial"
+}
