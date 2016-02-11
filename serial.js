@@ -19,8 +19,16 @@ exports.Serial = function(dev){
 
   this.setCameraAngle = function(axis, angle, callback) {
     if(!this.sp.isOpen()) return;
+
+    if(angle >= 40){
+   	logger.error("angle is too large : angle=" + angle); 
+	return;
+    }
+
     var data = [(1 << 7) | (axis ? (1 << 6) : 0)
-                         | (angle & (1 << 6) - 1)];
+                         | (parseInt(angle) & ((1 << 6) - 1))];
+
+    logger.debug("angle=" + parseInt(angle));
 
     var that = this;
     that.sp.write(data, function(err, res) {
@@ -29,6 +37,7 @@ exports.Serial = function(dev){
           if(callback) callback();
           return;
         }
+	logger.debug(data + ':' + res);
     });
   };
 
@@ -43,6 +52,7 @@ exports.Serial = function(dev){
           if(callback) callback();
           return;
         } else {
+	  logger.debug(res);
           return (data & ((1<<7)-1)); 
         }
     });
@@ -61,6 +71,7 @@ exports.Serial = function(dev){
           if(callback) callback();
           return;
         } 
+        logger.debug(res);
     })
   };
 };
