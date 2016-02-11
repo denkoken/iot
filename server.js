@@ -46,8 +46,9 @@ io.of('/camera').on('connection', function(socket) {
   socket.on('move', function(data) {
       logger.debug('move' + data.x + " " + data.y);
 
-      serial.setCameraAngle(0, data.x * 20 + 20);
-      serial.setCameraAngle(1, data.y * 20 + 20);
+      serial.setCameraAngle(0, data.x * 20 + 20, function() {
+          serial.setCameraAngle(1, data.y * 20 + 20);
+      });
       //serial.setLed(1);
   });
 
