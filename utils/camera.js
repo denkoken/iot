@@ -18,7 +18,7 @@ exports.Camera = function(id) {
   this.settings = {
     size: {width: 320, height: 240},
     interval_time: 100,
-    min_interval_time: 50, // depend on camera device
+    min_interval_time: 100, // depend on camera device
     resize: {enabled: false, width: 320, height: 240},
     encode: {ext: ".jpg", jpegQuality: 80}
   };

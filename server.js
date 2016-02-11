@@ -29,8 +29,9 @@ server.listen(3000, function(){
 camera.changeInterval(1000);
 var user_cnt = 0;
 
+// camera socket.io connection
 io.of('/camera').on('connection', function(socket) {
-  logger.info('socketio /camera connected');
+  logger.info('socket.io /camera connected');
 
   if (user_cnt == 0) {
     camera.changeInterval(50);
@@ -45,10 +46,10 @@ io.of('/camera').on('connection', function(socket) {
 
   // servo control
   socket.on('move', function(data) {
-      logger.debug('move' + data.x + " " + data.y);
+      var angle_x = parseInt(data.x * 50 + 60);
+      var angle_y = parseInt(data.y * 50 + 60);
+      logger.debug('move:' + angle_x + "," + angle_y);
 
-      var angle_x = parseInt(data.x * 20 + 20);
-      var angle_y = parseInt(data.y * 20 + 20);
       serial.setCameraAngle(0, angle_x, function() {
           serial.setCameraAngle(1, angle_y);
       });
