@@ -17,7 +17,8 @@ exports.Camera = function(id) {
 
   this.settings = {
     size: {width: 320, height: 240},
-    min_interval: 100,
+    interval_time: 100,
+    min_interval_time: 50, // depend on camera device
     resize: {enabled: false, width: 320, height: 240},
     encode: {ext: ".jpg", jpegQuality: 80}
   };
@@ -32,8 +33,29 @@ exports.Camera = function(id) {
 
   // encoded capture
   var buff = SimpleImage(this.settings.encode);
-  // last update time (ms)
+  // last update time
   var last_update = Date.now();
+  // interval object
+  var cap_interval = null;
+
+  // capture
+  var update = function() {
+    var diff = Date.now() - last_update;
+    if(that.camera && diff > that.settings.min_interval_time){
+      that.camera.read(function(err, im) {
+          if (!err) {
+            // image resize
+            var resize = that.settings.resize
+            if (resize.enabled) {
+              im.resize(resize.width, resize.height);
+            }
+            // save
+            buff = im.toBuffer(that.settings.encode);
+          }
+          last_update = Date.now();
+      });
+    }
+  }
 
   // capture size
   this.setCaptureSize = function(width, height) {
@@ -46,30 +68,30 @@ exports.Camera = function(id) {
                 this.settings.size.height + ')');
   }
 
-  // capture
-  this.update = function() {
-    var interval = Date.now() - last_update;
-    if(this.camera &&  interval > that.settings.min_interval){
-      this.camera.read(function(err, im) {
-          if (!err) {
-            // image resize
-            var resize = that.settings.resize
-            if (resize.enabled) {
-              im.resize(resize.width, resize.height);
-            }
-            // save
-            buff = im.toBuffer(that.settings.encode);
-            last_update = Date.now();
-          }
-      });
-    }
-  }
-
   // get encoded image
   this.get = function() {
     return buff;
   }
 
+  // capture interval
+  this.changeInterval = function(ms) {
+    // lower limit
+    if(ms < this.settings.min_interval_time){
+      ms = this.settings.min_interval_time;
+    }
+    logger.info('change capture interval (' + ms + ' ms)')
+
+    // clear
+    clearInterval(cap_interval);
+
+    // new interval
+    this.settings.interval_time = ms;
+    cap_interval = setInterval(function () {
+      update();
+    }, ms);
+  }
+
+  // initial settings
   this.setCaptureSize();
-  this.update(); // initial update
+  this.changeInterval(this.settings.interval_time);
 };

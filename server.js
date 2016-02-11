@@ -25,13 +25,20 @@ server.listen(3000, function(){
     logger.info('listening on *:3000');
 });
 
+camera.changeInterval(1000);
+var user_cnt = 0;
+
 io.of('/camera').on('connection', function(socket) {
   logger.info('socketio /camera connected');
+
+  if (user_cnt == 0) {
+    camera.changeInterval(50);
+  }
+  user_cnt++;
 
   // capture frame
   socket.emit('frame', camera.get());
   socket.on('frame', function() {
-      camera.update(); // TODO(takiyu): Fix for multi client
       socket.emit('frame', camera.get());
   });
 
@@ -46,5 +53,10 @@ io.of('/camera').on('connection', function(socket) {
   // disconnect
   socket.on('disconnect', function() {
       logger.info('socketio /camera disconnect');
+
+      user_cnt--;
+      if (user_cnt == 0) {
+        camera.changeInterval(1000);
+      }
   });
 });
