@@ -11,10 +11,10 @@ var app = express();
 var server = http.createServer(app);
 var io = socketio(server);
 
-var Camera = require('./camera').Camera
+var Camera = require('./utils/camera').Camera
 var camera = new Camera(0);
 
-var Serial = require('./serial').Serial
+var Serial = require('./utils/serial').Serial
 var serial = new Serial('/dev/tty.usbmodem1421');
 
 
