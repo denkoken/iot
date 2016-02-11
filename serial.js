@@ -19,12 +19,12 @@ exports.Serial = function(dev){
 
   this.setCameraAngle = function(axis, angle, callback) {
     if(!this.sp.isOpen()) return;
-
-    var data = [(1<<7) | (axis ? (1<<6) : 0) | (angle & (1<<6)-1)];
+    var data = [(1 << 7) | (axis ? (1 << 6) : 0)
+                         | (angle & (1 << 6) - 1)];
 
     var that = this;
     that.sp.write(data, function(err, res) {
-        if(err){
+        if(err) {
           logger.error(err);
           if(callback) callback();
           return;
@@ -34,17 +34,17 @@ exports.Serial = function(dev){
 
   this.getCameraAngle = function(axis) {
     if(!this.sp.isOpen()) return;
-    var data = [0 | (axis ? 1:0) | (1<<6)];
+    var data = [0 | (axis ? 1 : 0) | (1 << 6)];
 
     var that = this;
     that.sp.write(data, function(err, res){
-      if(err){
-     	logger.error(err);
-	if(callback) callback();
-	return;
-      }else{
-     	return (data & ((1<<7)-1)); 
-      }
+        if(err) {
+          logger.error(err);
+          if(callback) callback();
+          return;
+        } else {
+          return (data & ((1<<7)-1)); 
+        }
     });
 
     return 0;
@@ -52,14 +52,15 @@ exports.Serial = function(dev){
 
   this.setLed = function(value) {
     if(!this.sp.isOpen()) return;
-    var data = [0 | (1<<5) | (value ? 1 : 0)];
+    var data = [0 | (1 << 5) | (value ? 1 : 0)];
+
     var that = this;
     that.sp.write(data, function(err, res){
-      if(err){
-     	logger.error(err);
-	if(callback) callback();
-	return;
-      } 
+        if(err) {
+          logger.error(err);
+          if(callback) callback();
+          return;
+        } 
     })
   };
 };
