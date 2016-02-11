@@ -15,7 +15,7 @@ var Camera = require('./camera').Camera
 var camera = new Camera(0);
 
 var Serial = require('./serial').Serial
-var serial = new Serial('/dev/ttyACM0');
+var serial = new Serial('/dev/tty.usbmodem1421');
 
 
 app.use(log4js.connectLogger(log4js.getLogger('express')));
@@ -41,6 +41,7 @@ io.of('/camera').on('connection', function(socket) {
 
       serial.setCameraAngle(0, data.x * 50 + 50, function () {
       serial.setCameraAngle(1, data.y * 50 + 50); });
+      //serial.setLed(1);
   });
 
   // disconnect
