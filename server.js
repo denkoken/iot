@@ -68,48 +68,47 @@ server.listen(3000, function(){
 camera.changeInterval(1000);
 var user_cnt = 0;
 
-io.of('/camera').on('connection', function(socket,next) {
-  logger.info('socketio /camera connected');
+// camera socket.io connection
+io.of('/camera').on('connection', function(socket) {
+  logger.info('socket.io /camera connected');
 
-
-  logger.info(socket.request.session.user);
   if(socket.request.session.user){
-      if (user_cnt == 0) {
-        camera.changeInterval(100);
-      }
-      user_cnt++;
+    logger.info('login with '+socket.request.session.user);
+    if (user_cnt == 0) {
+      camera.changeInterval(100);
+    }
+    user_cnt++;
 
-      // capture frame
+    // capture frame
+    socket.emit('frame', camera.get());
+    socket.on('frame', function() {
       socket.emit('frame', camera.get());
-      socket.on('frame', function() {
-          socket.emit('frame', camera.get());
+    });
+    
+    // servo control
+    socket.on('move', function(data) {
+      var angle_x = parseInt(data.x * 50 + 60);
+      var angle_y = parseInt(data.y * 50 + 60);
+      logger.debug('move:' + angle_x + "," + angle_y);
+
+      serial.setCameraAngle(0, angle_x, function() {
+        serial.setCameraAngle(1, angle_y);
       });
+    });
 
-      // servo control
-      socket.on('move', function(data) {
-          logger.debug('move' + data.x + " " + data.y);
+    // disconnect
+    socket.on('disconnect', function() {
+      logger.info('socketio /camera disconnect');
 
-          var angle_x = parseInt(data.x * 20 + 20);
-          var angle_y = parseInt(data.y * 20 + 20);
-          serial.setCameraAngle(0, angle_x, function() {
-              serial.setCameraAngle(1, angle_y);
-          });
-          //serial.setLed(1);
-      });
-
-      // disconnect
-      socket.on('disconnect', function() {
-          logger.info('socketio /camera disconnect');
-
-          user_cnt--;
-          if (user_cnt == 0) {
-            camera.changeInterval(1000);
-          }
-      });
+      user_cnt--;
+      if (user_cnt == 0) {
+        camera.changeInterval(1000);
+      }
+    });
   }
   else
   {
-      logger.info('nologin user access');
+    logger.info('nologin user access');
   }
 });
 
