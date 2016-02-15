@@ -38,6 +38,13 @@ mongoose.connect(conf.db_name, function(err) {
       logger.info("connect mongodb");
     }
 });
+var UserModel = mongoose.model('user', new mongoose.Schema({
+      name : String,
+      password : String
+    }, {
+      collection : conf.collection_name
+    }
+)); 
 
 // set session
 var session = express_session({
@@ -60,7 +67,6 @@ app.engine('ejs', ejs.renderFile);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 ////
-var UserModel = require('./models/user.js');
 
 
 server.listen(3000, function(){
