@@ -1,6 +1,6 @@
 {
   "camera_id": 0,
-  "serial_dev": "/dev/ttyACM0",
+  "serial_dev": "/dev/tty.usbserial-00002114B",
   "serial_util": "./utils/serial",
   "db_name" : "mongodb://localhost/server_user",
   "collection_name" : "users"

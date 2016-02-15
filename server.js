@@ -11,8 +11,7 @@ var express_session = require('express-session');
 var http = require('http');
 var socketio = require('socket.io');
 var mongoose = require('mongoose');
-var connect_mongo = require('connect-mongo');
-
+var connect_mongo = require('connect-mongo/es5');
 // instance
 var app = express();
 var server = http.createServer(app);
