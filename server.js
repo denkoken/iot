@@ -69,45 +69,41 @@ server.listen(3000, function(){
 
 // root redirect
 app.get('/', function(req, res){
-    if(req.session.user){
-      res.redirect('/camera');
-    }else{
-      res.redirect('/login');
-    }
+    res.redirect('/login');
+});
+
+var check_login = function(req, res, next) {
+  if(req.session.user) next();
+  else res.redirect('/');
+}
+
+// camera page
+app.get('/camera', check_login, function(req, res){
+    var name = req.session.user;
+    res.render('camera.ejs', {user : name});
 });
 
 // login page
-app.get('/login', function(req,res,next){
-    if(req.session.user){
+app.get('/login', function(req, res, next){
+    if(req.session.user) {
       var name = req.session.user;
-      res.render('camera.ejs', {user : name});
-      res.redirect('/login');
-    }else{
-      res.render('login.ejs',{comment:""});
-    }
-});
-
-// camera page
-app.get('/camera', function(req, res){
-    if(req.session.user){
-      var name = req.session.user;
-      res.render('camera.ejs', {user : name});
-    }else{
-      res.redirect('/login');
+      res.redirect('/camera');
+    } else {
+      res.render('login.ejs', {comment : ""});
     }
 });
 
 // login (authenticate user)
-app.post('/login', function(req, res) {
+app.post('/login', function(req, res){
     var name = req.body.name;
     var password = req.body.password;
     var query = { "name":name, "password":password };
     logger.debug(query);
 
-    UserModel.find(query,function(err, result){
+    UserModel.find(query, function(err, result){
         if(err) console.log(err);
 
-        if(result=="" && query.name != "debug"){
+        if(result === "" && query.name !== "debug"){
           res.render('login.ejs',{comment:"wrong name or password"});
         } else {
           //create sessison
