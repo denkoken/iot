@@ -9,8 +9,8 @@ var express = require('express');
 var router = express.Router();
 
 router.get('/camera',function(req,res,next){
-    var name = req.session.user;
-    res.render('camera.ejs',{user:name});
+  var name = req.session.user;
+  res.render('camera.ejs',{user:name});
 });
 
 module.exports = router;
