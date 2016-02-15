@@ -12,6 +12,7 @@ var http = require('http');
 var socketio = require('socket.io');
 var mongoose = require('mongoose');
 var connect_mongo = require('connect-mongo/es5');
+
 // instance
 var app = express();
 var server = http.createServer(app);
@@ -55,19 +56,80 @@ io.use(function(socket, next){
 //// I would like to replace ejs with reactjs base for more simplicity. (takiyu)
 var ejs = require('ejs');
 var bodyParser = require('body-parser');
-var loginRouter = require('./routes/login');
-var cameraRouter = require('./routes/camera');
 app.engine('ejs', ejs.renderFile);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
-app.use(loginRouter);
-app.use(cameraRouter);
 ////
+var UserModel = require('./models/user.js');
 
 
 server.listen(3000, function(){
     logger.info('listening on *:3000');
 });
+
+// root redirect
+app.get('/', function(req, res){
+    if(req.session.user){
+      res.redirect('/camera');
+    }else{
+      res.redirect('/login');
+    }
+});
+
+// login page
+app.get('/login', function(req,res,next){
+    if(req.session.user){
+      var name = req.session.user;
+      res.render('camera.ejs', {user : name});
+      res.redirect('/login');
+    }else{
+      res.render('login.ejs',{comment:""});
+    }
+});
+
+// camera page
+app.get('/camera', function(req, res){
+    if(req.session.user){
+      var name = req.session.user;
+      res.render('camera.ejs', {user : name});
+    }else{
+      res.redirect('/login');
+    }
+});
+
+// login (authenticate user)
+app.post('/login', function(req, res) {
+    var name = req.body.name;
+    var password = req.body.password;
+    var query = { "name":name, "password":password };
+    logger.debug(query);
+
+    UserModel.find(query,function(err, result){
+        if(err) console.log(err);
+
+        if(result=="" && query.name != "debug"){
+          res.render('login.ejs',{comment:"wrong name or password"});
+        } else {
+          //create sessison
+          req.session.user = name;
+          logger.info('create session:' + req.session.user);
+          res.redirect('/');
+        }
+    });
+})
+
+// logout (delete session)
+app.get('/logout', function(req, res){
+    logger.info('delete session: ' + req.session.user);
+    req.session.destroy();
+    res.redirect('/');
+});
+
+// send not found
+app.get('/*', function(req, res) {
+    res.sendStatus(404);
+});
+
 
 camera.changeInterval(1000);
 var user_cnt = 0; // TODO experimental variable
@@ -118,4 +180,3 @@ io.of('/camera').on('connection', function(socket) {
         }
     });
 });
-
