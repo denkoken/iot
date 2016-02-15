@@ -6,8 +6,11 @@ var LoginForm = React.createClass({
     componentDidMount() {
     },
     handleOnSubmit(){
-      $.ajax({ url:this.url, dataType:'json', type:'POST',
-          data:comment,
+      $.ajax({
+          url: this.url,
+          dataType:'json',
+          type:'POST',
+          data: this.comment,
           success:function(data){
             if(data.error_type === "false"){
               this.comment = "mistake user or password";

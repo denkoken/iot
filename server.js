@@ -5,7 +5,9 @@ var logger = log4js.getLogger('system');
 logger.info('start server');
 
 // require
+var body_parser = require('body-parser');
 var conf = require('config');
+var ejs = require('ejs');
 var express = require('express')
 var express_session = require('express-session');
 var http = require('http');
@@ -28,6 +30,10 @@ var serial = new Serial(conf.serial_dev);
 app.use(log4js.connectLogger(log4js.getLogger('express')));
 // public routing
 app.use(express.static(__dirname + '/public'));
+// template engine
+app.engine('ejs', ejs.renderFile);
+app.use(body_parser.json());
+app.use(body_parser.urlencoded({extended: false}));
 
 // MongoDB
 var MongoStore = connect_mongo(express_session);
@@ -59,45 +65,27 @@ io.use(function(socket, next){
     session(socket.request, socket.request.res, next);
 });
 
-
-//// I would like to replace ejs with reactjs base for more simplicity. (takiyu)
-var ejs = require('ejs');
-var bodyParser = require('body-parser');
-app.engine('ejs', ejs.renderFile);
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:false}));
-////
-
-
+// start listen
 server.listen(3000, function(){
     logger.info('listening on *:3000');
 });
 
-// root redirect
-app.get('/', function(req, res){
-    res.redirect('/login');
-});
-
-//var check_login = function(req, res, next) {
-//  if(req.session.user) next();
-//  else res.redirect('/login');
-//}
 
 // camera page
 app.get('/camera', function(req, res){
     if(req.session.user){
-      res.render('main.ejs',{script:"camera.js"});
+      res.render('main.ejs', {script: "camera.js"});
     }else{
-        res.redirect("/login");
+      res.redirect("/login");
     }
 });
 
 // login page
-app.get('/login', function(req,res,next){
+app.get('/login', function(req, res){
     if(req.session.user){
       res.redirect("/camera");
     }else{
-      res.render('main.ejs',{script:"login.js"});
+      res.render('main.ejs', {script: "login.js"});
     }
 });
 
@@ -105,14 +93,14 @@ app.get('/login', function(req,res,next){
 app.post('/login', function(req, res){
     var name = req.body.name;
     var password = req.body.password;
-    var query = { "name":name, "password":password };
+    var query = {"name": name, "password": password};
     logger.debug(query);
 
     UserModel.find(query, function(err, result){
         if(err) console.log(err);
 
-        if(result==="" && query.name !== "debug"){
-            res.json({error_type:"false"});
+        if(result === "" && query.name !== "debug"){ // TODO remove debug
+          res.json({error_type: "false"});
         } else {
           //create sessison
           req.session.user = name;
@@ -129,9 +117,9 @@ app.get('/logout', function(req, res){
     res.redirect('/');
 });
 
-// send not found
+// all redirect
 app.get('/*', function(req, res) {
-    res.sendStatus(404);
+    res.redirect("/login");
 });
 
 
