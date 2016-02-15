@@ -99,7 +99,7 @@ app.post('/login', function(req, res){
     UserModel.find(query, function(err, result){
         if(err) console.log(err);
 
-        if(result === "" && query.name !== "debug"){ // TODO remove debug
+        if(result.length === 0 && query.name !== "debug"){ // TODO remove debug
           res.json({error_type: "false"});
         } else {
           //create sessison
