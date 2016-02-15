@@ -33,8 +33,8 @@ var IOT = React.createClass({
   render(){
     return (
       <div>
-        <ImageViewer />
-        Hello, world!.
+        <ImageViewer /><br />
+        <a href="/logout"> logout </a>
       </div>
     );
   }

@@ -80,10 +80,9 @@ app.get('/', function(req, res){
 app.get('/login', function(req,res,next){
     if(req.session.user){
       var name = req.session.user;
-      res.render('camera.ejs', {user : name});
-      res.redirect('/login');
+      res.redirect("/camera");
     }else{
-      res.render('login.ejs',{comment:""});
+      res.render('main.ejs',{script:"login.js"});
     }
 });
 
@@ -91,7 +90,7 @@ app.get('/login', function(req,res,next){
 app.get('/camera', function(req, res){
     if(req.session.user){
       var name = req.session.user;
-      res.render('camera.ejs', {user : name});
+      res.render('main.ejs', {script:"camera.js"});
     }else{
       res.redirect('/login');
     }
@@ -108,12 +107,12 @@ app.post('/login', function(req, res) {
         if(err) console.log(err);
 
         if(result=="" && query.name != "debug"){
-          res.render('login.ejs',{comment:"wrong name or password"});
+            res.json({error_type:"false"});
         } else {
           //create sessison
           req.session.user = name;
           logger.info('create session:' + req.session.user);
-          res.redirect('/');
+          res.redirect('camera');
         }
     });
 })
