@@ -5,9 +5,9 @@ var ImageViewer = React.createClass({
   height : 480,
   componentDidMount() {
 		this.ctx = ReactDOM.findDOMNode(this.refs.canvas).getContext('2d');
-    socket.on('frame', this.on_frame);
+    socket.on('frame', this.onFrame);
   },
-  on_frame(data){
+  onFrame(data){
     var that = this;
     var b64jpg = btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
     var img = new Image();
@@ -19,9 +19,9 @@ var ImageViewer = React.createClass({
   },
   handleClick(e) {
     var rect = e.target.getBoundingClientRect();
-    var click_x = (e.clientX - rect.left) / this.width * 2.0 - 1.0;
-    var click_y = (e.clientY - rect.top) / this.height * 2.0 - 1.0;
-    socket.emit('move', {x: click_x, y: click_y});
+    var clickX = (e.clientX - rect.left) / this.width * 2.0 - 1.0;
+    var clickY = (e.clientY - rect.top) / this.height * 2.0 - 1.0;
+    socket.emit('move', {x: clickX, y: clickY});
   },
   render(){
     return <canvas ref='canvas' width={this.width} height={this.height}
