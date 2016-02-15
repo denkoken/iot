@@ -38,6 +38,13 @@ mongoose.connect(conf.db_name, function(err) {
       logger.info("connect mongodb");
     }
 });
+var UserModel = mongoose.model('user', new mongoose.Schema({
+      name : String,
+      password : String
+    }, {
+      collection : conf.collection_name
+    }
+)); 
 
 // set session
 var session = express_session({
@@ -60,7 +67,6 @@ app.engine('ejs', ejs.renderFile);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 ////
-var UserModel = require('./models/user.js');
 
 
 server.listen(3000, function(){
@@ -69,44 +75,43 @@ server.listen(3000, function(){
 
 // root redirect
 app.get('/', function(req, res){
+    res.redirect('/login');
+});
+
+//var check_login = function(req, res, next) {
+//  if(req.session.user) next();
+//  else res.redirect('/login');
+//}
+
+// camera page
+app.get('/camera', function(req, res){
     if(req.session.user){
-      res.redirect('/camera');
+      res.render('main.ejs',{script:"camera.js"});
     }else{
-      res.redirect('/login');
+        res.redirect("/login");
     }
 });
 
 // login page
 app.get('/login', function(req,res,next){
     if(req.session.user){
-      var name = req.session.user;
       res.redirect("/camera");
     }else{
       res.render('main.ejs',{script:"login.js"});
     }
 });
 
-// camera page
-app.get('/camera', function(req, res){
-    if(req.session.user){
-      var name = req.session.user;
-      res.render('main.ejs', {script:"camera.js"});
-    }else{
-      res.redirect('/login');
-    }
-});
-
 // login (authenticate user)
-app.post('/login', function(req, res) {
+app.post('/login', function(req, res){
     var name = req.body.name;
     var password = req.body.password;
     var query = { "name":name, "password":password };
     logger.debug(query);
 
-    UserModel.find(query,function(err, result){
+    UserModel.find(query, function(err, result){
         if(err) console.log(err);
 
-        if(result=="" && query.name != "debug"){
+        if(result==="" && query.name !== "debug"){
             res.json({error_type:"false"});
         } else {
           //create sessison
