@@ -14,7 +14,7 @@ exports.Serial = function(dev){
   }, false);
 
   // open serial port
-  logger.info('open serial (' + dev + ')');
+  logger.info('Open serial (' + dev + ')');
   this.sp.open(function(err) {
       if(err) logger.error(err);
   });

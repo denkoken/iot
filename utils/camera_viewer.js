@@ -25,12 +25,12 @@ exports.registerCameraApp = function(app, io, camera, serial) {
 
       // *** check login user ***
       if(!socket.request.session.user){
-        logger.info('no-login user access (socket.io camera)');
+        logger.info('No-login user access (socket.io /camera)');
         socket.disconnect();
         return;
       }
-      logger.info('login with ' + socket.request.session.user +
-                  '(socket.io camera)');
+      logger.info('Connection socket.io /camera : ' +
+                  socket.request.session.user);
 
       // scale capture interval
       if (user_cnt == 0) {
@@ -48,7 +48,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
       socket.on('move', function(data) {
           var angle_x = parseInt(data.x * 50 + 60); // TODO configure
           var angle_y = parseInt(data.y * 50 + 60);
-          logger.debug('move:' + angle_x + "," + angle_y);
+          logger.debug('Servo move : ' + angle_x + ", " + angle_y);
 
           serial.setCameraAngle(0, angle_x, function() { // TODO configure
               serial.setCameraAngle(1, angle_y);
@@ -57,7 +57,8 @@ exports.registerCameraApp = function(app, io, camera, serial) {
 
       // event : disconnect
       socket.on('disconnect', function() {
-          logger.info('socketio /camera disconnect');
+          logger.info('Disconnect socket.io /camera : ' +
+                      socket.request.session.user);
 
           user_cnt--;
           // scale capture interval

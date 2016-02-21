@@ -14,7 +14,7 @@ exports.Serial = function(dev){
   }, false);
 
   // open serial port
-  logger.info('open serial (' + dev + ')');
+  logger.info('Open serial (' + dev + ')');
   this.sp.open(function(err) {
       if(err) logger.error(err);
   });
@@ -23,7 +23,7 @@ exports.Serial = function(dev){
     if(!this.sp.isOpen()) return;
 
     if(angle >= 40){
-      logger.error("angle is too large : angle=" + angle); 
+      logger.error("Angle is too large : angle=" + angle);
       return;
     }
 

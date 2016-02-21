@@ -2,7 +2,7 @@ var log4js = require('log4js');
 log4js.configure('./config/log.json');
 var logger = log4js.getLogger('system');
 
-logger.info('start server');
+logger.info('Start IOT Server');
 
 // require
 var body_parser = require('body-parser');
@@ -35,7 +35,7 @@ mongoose.connect(conf.db_name, function(err) {
     if(err){
       logger.error(err);
     } else {
-      logger.info("connect mongodb");
+      logger.info("Connect mongodb");
     }
 });
 var UserModel = mongoose.model('user', new mongoose.Schema({
@@ -64,6 +64,7 @@ io.use(function(socket, next){
 var Camera = require('./utils/camera').Camera
 var Serial = require(conf.serial_util).Serial
 var Viewer = require('./utils/camera_viewer.js');
+// TODO Add more applications (e.g. chat, admin page, log viewer)
 
 // applications
 var camera = new Camera(conf.camera_id);
@@ -73,7 +74,7 @@ Viewer.registerCameraApp(app, io, camera, serial); // '/camera'
 
 // login page
 app.get('/login', function(req, res) {
-    if(req.session.user){
+    if(req.session.user) {
       res.redirect("/camera");
     } else {
       res.render('main.ejs', {script: "login_client.js"});
@@ -88,14 +89,17 @@ app.post('/login', function(req, res) {
     logger.debug(query);
 
     UserModel.find(query, function(err, result) {
-        if(err) console.log(err);
+        if(err) {
+          logger.error(err);
+          return;
+        }
 
         if(result.length === 0 && query.name !== "debug") { // TODO remove debug
           res.json({error_type: "false"});
         } else {
-          //create sessison
+          // create sessison
+          logger.info('Create session:' + req.session.user);
           req.session.user = name;
-          logger.info('create session:' + req.session.user);
           res.redirect('camera');
         }
     });
@@ -103,7 +107,7 @@ app.post('/login', function(req, res) {
 
 // logout (delete session)
 app.get('/logout', function(req, res) {
-    logger.info('delete session: ' + req.session.user);
+    logger.info('Delete session: ' + req.session.user);
     req.session.destroy();
     res.redirect('/');
 });
@@ -115,5 +119,5 @@ app.get('/*', function(req, res) {
 
 // start listen
 server.listen(3000, function() {
-    logger.info('listening on *:3000');
+    logger.info('Listening on *:3000');
 });

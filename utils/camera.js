@@ -25,7 +25,7 @@ exports.Camera = function(id) {
 
   // open camera
   try {
-    logger.info('open camera (' + id + ')');
+    logger.info('Open camera (' + id + ')');
     this.camera = new cv.VideoCapture(id);
   } catch(e) {
     logger.error(e.message);
@@ -63,7 +63,7 @@ exports.Camera = function(id) {
     if (height) this.settings.size.height = height;
     this.camera.setWidth(this.settings.size.width);
     this.camera.setHeight(this.settings.size.height);
-    logger.info('set capture size (' +
+    logger.info('Set camera capture size (' +
                 this.settings.size.width + ', ' +
                 this.settings.size.height + ')');
   }
@@ -79,7 +79,7 @@ exports.Camera = function(id) {
     if(ms < this.settings.min_interval_time){
       ms = this.settings.min_interval_time;
     }
-    logger.info('change capture interval (' + ms + ' ms)')
+    logger.info('Change camera capture interval (' + ms + ' ms)')
 
     // clear
     clearInterval(cap_interval);
