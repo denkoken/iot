@@ -59,6 +59,7 @@ exports.Camera = function(id) {
 
   // capture size
   this.setCaptureSize = function(width, height) {
+    if (!this.camera) return;
     if (width) this.settings.size.width = width;
     if (height) this.settings.size.height = height;
     this.camera.setWidth(this.settings.size.width);
