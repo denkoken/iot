@@ -20,12 +20,6 @@ var app = express();
 var server = http.createServer(app);
 var io = socketio(server);
 
-// local require
-var Camera = require('./utils/camera').Camera
-var camera = new Camera(conf.camera_id);
-var Serial = require(conf.serial_util).Serial
-var serial = new Serial(conf.serial_dev);
-
 // express logger
 app.use(log4js.connectLogger(log4js.getLogger('express')));
 // public routing
@@ -35,7 +29,7 @@ app.engine('ejs', ejs.renderFile);
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({extended: false}));
 
-// MongoDB
+// MongoDB for user sesstion
 var MongoStore = connect_mongo(express_session);
 mongoose.connect(conf.db_name, function(err) {
     if(err){
@@ -65,41 +59,38 @@ io.use(function(socket, next){
     session(socket.request, socket.request.res, next);
 });
 
-// start listen
-server.listen(3000, function(){
-    logger.info('listening on *:3000');
-});
 
+// local utils
+var Camera = require('./utils/camera').Camera
+var Serial = require(conf.serial_util).Serial
+var Viewer = require('./utils/camera_viewer.js');
 
-// camera page
-app.get('/camera', function(req, res){
-    if(req.session.user){
-      res.render('main.ejs', {script: "camera.js"});
-    }else{
-      res.redirect("/login");
-    }
-});
+// applications
+var camera = new Camera(conf.camera_id);
+var serial = new Serial(conf.serial_dev);
+Viewer.registerCameraApp(app, io, camera, serial); // '/camera'
+
 
 // login page
-app.get('/login', function(req, res){
+app.get('/login', function(req, res) {
     if(req.session.user){
       res.redirect("/camera");
-    }else{
-      res.render('main.ejs', {script: "login.js"});
+    } else {
+      res.render('main.ejs', {script: "login_client.js"});
     }
 });
 
 // login (authenticate user)
-app.post('/login', function(req, res){
+app.post('/login', function(req, res) {
     var name = req.body.name;
     var password = req.body.password;
     var query = {"name": name, "password": password};
     logger.debug(query);
 
-    UserModel.find(query, function(err, result){
+    UserModel.find(query, function(err, result) {
         if(err) console.log(err);
 
-        if(result.length === 0 && query.name !== "debug"){ // TODO remove debug
+        if(result.length === 0 && query.name !== "debug") { // TODO remove debug
           res.json({error_type: "false"});
         } else {
           //create sessison
@@ -111,7 +102,7 @@ app.post('/login', function(req, res){
 })
 
 // logout (delete session)
-app.get('/logout', function(req, res){
+app.get('/logout', function(req, res) {
     logger.info('delete session: ' + req.session.user);
     req.session.destroy();
     res.redirect('/');
@@ -122,53 +113,7 @@ app.get('/*', function(req, res) {
     res.redirect("/login");
 });
 
-
-camera.changeInterval(1000);
-var user_cnt = 0; // TODO experimental variable
-
-// camera socket.io connection
-io.of('/camera').on('connection', function(socket) {
-
-    // check login user
-    if(!socket.request.session.user){
-      logger.info('no-login user access (socket.io camera)');
-      socket.disconnect();
-      return;
-    }
-    logger.info('login with ' + socket.request.session.user +
-      '(socket.io camera)');
-
-    // scale capture interval
-    if (user_cnt == 0) {
-      camera.changeInterval(100);
-    }
-    user_cnt++;
-
-    // capture frame event
-    socket.emit('frame', camera.get());
-    socket.on('frame', function() {
-        socket.emit('frame', camera.get());
-    });
-
-    // servo control event
-    socket.on('move', function(data) {
-        var angle_x = parseInt(data.x * 50 + 60); // TODO configure
-        var angle_y = parseInt(data.y * 50 + 60);
-        logger.debug('move:' + angle_x + "," + angle_y);
-
-        serial.setCameraAngle(0, angle_x, function() { // TODO configure
-            serial.setCameraAngle(1, angle_y);
-        });
-    });
-
-    // disconnect event
-    socket.on('disconnect', function() {
-        logger.info('socketio /camera disconnect');
-
-        user_cnt--;
-        // scale capture interval
-        if (user_cnt == 0) {
-          camera.changeInterval(1000);
-        }
-    });
+// start listen
+server.listen(3000, function() {
+    logger.info('listening on *:3000');
 });
