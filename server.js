@@ -83,10 +83,10 @@ app.get('/login', function(req, res) {
 
 // login (authenticate user)
 app.post('/login', function(req, res) {
+    logger.debug(req.body);
     var name = req.body.name;
     var password = req.body.password;
     var query = {"name": name, "password": password};
-    logger.debug(query);
 
     UserModel.find(query, function(err, result) {
         if(err) {
@@ -95,12 +95,13 @@ app.post('/login', function(req, res) {
         }
 
         if(result.length === 0 && query.name !== "debug") { // TODO remove debug
-          res.json({error_type: "false"});
+          res.json({result: "failure",state:"no_user"});
         } else {
           // create sessison
           logger.info('Create session:' + req.session.user);
           req.session.user = name;
-          res.redirect('camera');
+          res.json({result: "success",state:"/camera"});
+          //res.redirect('camera');
         }
     });
 })

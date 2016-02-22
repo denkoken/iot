@@ -1,21 +1,42 @@
 var LoginForm = React.createClass({
     nameText: "Name",
     passwordText: "Password",
-    comment: "",
     url: "",
-    componentDidMount() {
+
+    getInitialState(){
+        return {
+          nameValue: "",
+          passwordValue: "",
+          comment: "",
+        }
     },
-    handleOnSubmit(){
+    handleNameChange(e){
+      this.setState({nameValue:e.target.value});
+    },
+    handlePasswordChange(e){
+      this.setState({passwordValue:e.target.value});
+    },
+    handleSubmit(e){
+      e.preventDefault();
+      var data = {
+        name: this.state.nameValue,
+        password: this.state.passwordValue
+      }
       $.ajax({
           url: this.url,
-          dataType:'json',
           type:'POST',
-          data: this.comment,
+          contentType:'application/json',
+          dataType: 'json',
+          data:JSON.stringify(data),
           success:function(data){
-            if(data.error_type === "false"){
-              this.comment = "mistake user or password";
-            }else if(data.error_type === "multiple"){
-              this.comment = "mutiple login";
+            if(data.result === 'failure'){
+              if(data.state === 'no_user'){
+                this.setState({comment:"mistake user or password"});
+              }else if(data.state === "multiple"){
+                this.setState({comment:"mutiple login"});
+              }
+            }else if(data.result === 'success'){
+                window.location = data.state;
             }
           }.bind(this),
           error:function(xhr,status,err){
@@ -26,13 +47,29 @@ var LoginForm = React.createClass({
     render(){
       return (
         <div>
-          <form method="POST" onSubmit={this.handleOnSubmit}>
+          <form onSubmit={this.handleSubmit}>
             {this.nameText}
-            <input type="text" name="name" /><br />
+            <input 
+              type="text" 
+              name="name" 
+              value={this.state.nameValue} 
+              onChange={this.handleNameChange}
+            />
+            <br />
             {this.passwordText}
-            <input type="password" name="password" /><br />
-            <input type="submit" /> 
-            {this.comment}
+            <input 
+              type="password" 
+              name="password" 
+              value={this.state.passwordValue}
+              onChange={this.handlePasswordChange}
+            />
+            <br />
+            <input 
+              type="submit" 
+              value="Post"
+            /> 
+            <br />
+            {this.state.comment}
           </form>
         </div>
       );
