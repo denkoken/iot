@@ -12,9 +12,9 @@ exports.registerCameraApp = function(app, io, camera, serial) {
   app.get('/camera', function(req, res){
       // *** check login user ***
       if(req.session.user) {
-        res.render('main.ejs', {script: "camera_client.js"});
+        res.render('main.ejs', {script: 'camera_client.js'});
       } else {
-        res.redirect("/");
+        res.redirect('/');
       }
   });
 
@@ -48,7 +48,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
       socket.on('move', function(data) {
           var angle_x = parseInt(data.x * 50 + 60); // TODO configure
           var angle_y = parseInt(data.y * 50 + 60);
-          logger.debug('Servo move : ' + angle_x + ", " + angle_y);
+          logger.debug('Servo move : ' + angle_x + ', ' + angle_y);
 
           serial.setCameraAngle(0, angle_x, function() { // TODO configure
               serial.setCameraAngle(1, angle_y);

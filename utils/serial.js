@@ -23,7 +23,7 @@ exports.Serial = function(dev){
     if(!this.sp.isOpen()) return;
 
     if(angle >= 40){
-      logger.error("Angle is too large : angle=" + angle);
+      logger.error('Angle is too large : angle=' + angle);
       return;
     }
 

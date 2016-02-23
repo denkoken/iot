@@ -20,7 +20,7 @@ exports.Camera = function(id) {
     interval_time: 100,
     min_interval_time: 100, // depend on camera device
     resize: {enabled: false, width: 320, height: 240},
-    encode: {ext: ".jpg", jpegQuality: 80}
+    encode: {ext: '.jpg', jpegQuality: 80}
   };
 
   // open camera

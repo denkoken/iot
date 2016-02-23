@@ -35,7 +35,7 @@ mongoose.connect(conf.db_name, function(err) {
     if(err){
       logger.error(err);
     } else {
-      logger.info("Connect mongodb");
+      logger.info('Connect mongodb');
     }
 });
 var UserModel = mongoose.model('user', new mongoose.Schema({
@@ -75,18 +75,18 @@ Viewer.registerCameraApp(app, io, camera, serial); // '/camera'
 // login page
 app.get('/login', function(req, res) {
     if(req.session.user) {
-      res.redirect("/camera");
+      res.redirect('/camera');
     } else {
-      res.render('main.ejs', {script: "login_client.js"});
+      res.render('main.ejs', {script: 'login_client.js'});
     }
 });
 
 // login (authenticate user)
 app.post('/login', function(req, res) {
-    logger.debug(req.body);
     var name = req.body.name;
     var password = req.body.password;
-    var query = {"name": name, "password": password};
+    var query = {name: name, password: password};
+    logger.info('Login attempt : ' + name);
 
     UserModel.find(query, function(err, result) {
         if(err) {
@@ -94,14 +94,17 @@ app.post('/login', function(req, res) {
           return;
         }
 
-        if(result.length === 0 && query.name !== "debug") { // TODO remove debug
-          res.json({result: "failure",state:"no_user"});
+        if(result.length === 0 && query.name !== 'debug') { // TODO remove debug
+          res.json({message: 'Invalid user or password'});
         } else {
-          // create sessison
-          logger.info('Create session:' + req.session.user);
-          req.session.user = name;
-          res.json({result: "success",state:"/camera"});
-          //res.redirect('camera');
+          if(req.session.user) {
+            res.json({message: 'Multiple login'});
+          } else {
+            // create session
+            logger.info('Create session:' + req.session.user);
+            req.session.user = name;
+            res.json({redirect: '/camera'});
+          }
         }
     });
 })
@@ -115,7 +118,7 @@ app.get('/logout', function(req, res) {
 
 // all redirect
 app.get('/*', function(req, res) {
-    res.redirect("/login");
+    res.redirect('/login');
 });
 
 // start listen

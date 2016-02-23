@@ -1,71 +1,66 @@
 var LoginForm = React.createClass({
-    nameText: "Name",
-    passwordText: "Password",
-    url: "",
+    nameText: 'Name',
+    passwordText: 'Password',
+    url: '',
 
-    getInitialState(){
-        return {
-          nameValue: "",
-          passwordValue: "",
-          comment: "",
-        }
+    getInitialState() {
+      return {
+        nameValue: '',
+        passwordValue: '',
+        comment: '',
+      }
     },
-    handleNameChange(e){
-      this.setState({nameValue:e.target.value});
+    handleNameChange(e) {
+      this.setState({nameValue: e.target.value});
     },
-    handlePasswordChange(e){
-      this.setState({passwordValue:e.target.value});
+    handlePasswordChange(e) {
+      this.setState({passwordValue: e.target.value});
     },
-    handleSubmit(e){
+    handleSubmit(e) {
       e.preventDefault();
       var data = {
         name: this.state.nameValue,
         password: this.state.passwordValue
-      }
+      };
       $.ajax({
           url: this.url,
           type:'POST',
           contentType:'application/json',
           dataType: 'json',
-          data:JSON.stringify(data),
-          success:function(data){
-            if(data.result === 'failure'){
-              if(data.state === 'no_user'){
-                this.setState({comment:"mistake user or password"});
-              }else if(data.state === "multiple"){
-                this.setState({comment:"mutiple login"});
-              }
-            }else if(data.result === 'success'){
-                window.location = data.state;
-            }
+          data: JSON.stringify(data),
+          success: function(res) {
+            var message = res.message;
+            var redirect = res.redirect;
+            if(message) this.setState({comment: message});
+            if(redirect) window.location = redirect;
           }.bind(this),
-          error:function(xhr,status,err){
-              this.comment = status;
+          error: function(xhr, status, err) {
+            this.setState({comment: status});
           }.bind(this)
       });
     },
-    render(){
+    render() {
       return (
         <div>
           <form onSubmit={this.handleSubmit}>
             {this.nameText}
-            <input 
-              type="text" 
-              name="name" 
-              value={this.state.nameValue} 
+            <input
+              type="text"
+              name="name"
+              value={this.state.nameValue}
               onChange={this.handleNameChange}
             />
             <br />
             {this.passwordText}
-            <input 
-              type="password" 
-              name="password" 
+            <input
+              type="password"
+              name="password"
               value={this.state.passwordValue}
               onChange={this.handlePasswordChange}
             />
             <br />
-            <input 
-              type="submit" 
+            <input
+              type="submit"
               value="Post"
             /> 
             <br />
@@ -77,7 +72,7 @@ var LoginForm = React.createClass({
 });
 
 var Login = React.createClass({
-  render(){
+  render() {
     return (
       <div>
         <LoginForm />
