@@ -42,7 +42,7 @@ var AccountManagementForm = React.createClass({
     render() {
       return (
         <div>
-	  <h2>アカウント作成</ h2>
+        <h2>アカウント作成</ h2>
           <form onSubmit={this.handleSubmit}>
             {this.nameText}
             <input

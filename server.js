@@ -32,7 +32,7 @@ app.use(body_parser.urlencoded({extended: false}));
 // MongoDB for user sesstion
 var MongoStore = connect_mongo(express_session);
 mongoose.connect(conf.db_name, function(err) {
-    if(err){
+    if(err) {
       logger.error(err);
     } else {
       logger.info('Connect mongodb');
@@ -112,9 +112,9 @@ app.post('/login', function(req, res) {
 // account management page
 app.get('/management', function(req, res){
     if(req.session.user) {
-	logger.debug('management');
+      logger.debug('management');
         res.render('main.ejs', {script: 'account_management.js'}); 
-	logger.debug('render');
+        logger.debug('render');
     } else {
     }
 });
@@ -128,10 +128,10 @@ app.post('/management', function(req, res){
     UserModel.create(query, function(err, result) {
         if(err) {
             logger.error(err);
-	    return;
-	} 
+            return;
+          }
 
-	res.json({redirect: '/camera'});
+          res.json({redirect: '/camera'});
     });
 });
 
