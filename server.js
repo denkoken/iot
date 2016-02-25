@@ -107,7 +107,33 @@ app.post('/login', function(req, res) {
           }
         }
     });
-})
+});
+
+// account management page
+app.get('/management', function(req, res){
+    if(req.session.user) {
+	logger.debug('management');
+        res.render('main.ejs', {script: 'account_management.js'}); 
+	logger.debug('render');
+    } else {
+    }
+});
+
+app.post('/management', function(req, res){
+    var name = req.body.name;
+    var password = req.body.password;
+    var query = {name: name, password: password};
+    logger.info('Create account : ' + name);
+
+    UserModel.create(query, function(err, result) {
+        if(err) {
+            logger.error(err);
+	    return;
+	} 
+
+	res.json({redirect: '/camera'});
+    });
+});
 
 // logout (delete session)
 app.get('/logout', function(req, res) {
