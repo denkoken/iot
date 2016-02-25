@@ -1,7 +1,5 @@
-node_modules/
-npm-debug.log
-db/
-logs/*.log
+*/node_modules/
+*.log
 *~
 *.swp
 *.swn

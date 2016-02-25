@@ -61,9 +61,9 @@ io.use(function(socket, next){
 
 
 // local utils
-var Camera = require('./utils/camera').Camera
-var Serial = require(conf.serial_util).Serial
-var Viewer = require('./utils/camera_viewer.js');
+var Camera = require('../utils/camera').Camera
+var Serial = require('../utils/' + conf.serial_mode).Serial
+var Viewer = require('../utils/camera_viewer.js');
 // TODO Add more applications (e.g. chat, admin page, log viewer)
 
 // applications
