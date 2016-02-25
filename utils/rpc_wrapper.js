@@ -1,5 +1,4 @@
 var log4js = require('log4js');
-log4js.configure('./config/log.json');
 var logger = log4js.getLogger('system');
 
 exports.RpcServer = function(io, namespase, passwd) {
@@ -41,9 +40,9 @@ exports.RpcServer = function(io, namespase, passwd) {
 };
 
 exports.RpcClient = function(obj, server_url, passwd) {
-  var that = this;
-
   var client = require('socket.io-client');
+
+  var that = this;
   var socket = client.connect(server_url);
 
   socket.on('connect', function() {

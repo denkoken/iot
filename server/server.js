@@ -1,5 +1,5 @@
 var log4js = require('log4js');
-log4js.configure('./config/log.json');
+log4js.configure('../config/log.json');
 var logger = log4js.getLogger('system');
 
 logger.info('Start IOT Server');
