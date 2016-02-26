@@ -3,5 +3,8 @@
   "serial_dev": "/dev/ttyACM0",
   "serial_mode": "serial",
   "db_name" : "mongodb://localhost/server_user",
-  "collection_name" : "users"
+  "collection_name" : "users",
+  "rpc_url" : "http://localhost:3000",
+  "rpc_namespase" : "/rpc",
+  "rpc_passwd" : "SET_ANY_STRING"
 }

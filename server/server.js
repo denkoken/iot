@@ -61,14 +61,15 @@ io.use(function(socket, next){
 
 
 // local utils
-var Camera = require('../utils/camera').Camera
-var Serial = require('../utils/' + conf.serial_mode).Serial
+var RpcServer = require('../utils/rpc_wrapper.js').RpcServer;
 var Viewer = require('../utils/camera_viewer.js');
 // TODO Add more applications (e.g. chat, admin page, log viewer)
 
 // applications
-var camera = new Camera(conf.camera_id);
-var serial = new Serial(conf.serial_dev);
+var rpc_server = new RpcServer(io, conf.rpc_namespase, conf.rpc_passwd);
+var camera = rpc_server.getObject('camera');
+var serial = rpc_server.getObject('serial');
+rpc_server.startServer();
 Viewer.registerCameraApp(app, io, camera, serial); // '/camera'
 
 
@@ -110,11 +111,11 @@ app.post('/login', function(req, res) {
 });
 
 // account management page
-app.get('/management', function(req, res){
+app.get('/management', function(req, res) {
     if(req.session.user) {
       logger.debug('management');
-        res.render('main.ejs', {script: 'account_management.js'}); 
-        logger.debug('render');
+      res.render('main.ejs', {script: 'account_management.js'});
+      logger.debug('render');
     } else {
     }
 });
@@ -127,11 +128,11 @@ app.post('/management', function(req, res){
 
     UserModel.create(query, function(err, result) {
         if(err) {
-            logger.error(err);
-            return;
-          }
+          logger.error(err);
+          return;
+        }
 
-          res.json({redirect: '/camera'});
+        res.json({redirect: '/camera'});
     });
 });
 

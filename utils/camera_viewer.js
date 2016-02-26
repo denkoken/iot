@@ -5,7 +5,7 @@ var logger = log4js.getLogger('system');
 // Register camera viewer to express and socket.io
 exports.registerCameraApp = function(app, io, camera, serial) {
   // default camera interval
-  camera.changeInterval(1000);
+  if(camera.changeInterval) camera.changeInterval(1000);
 
   // express page
   app.get('/camera', function(req, res){
@@ -33,7 +33,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
 
       // scale capture interval
       if (user_cnt == 0) {
-        camera.changeInterval(100);
+        if(camera.changeInterval) camera.changeInterval(100);
       }
       user_cnt++;
 
@@ -62,7 +62,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
           user_cnt--;
           // scale capture interval
           if (user_cnt == 0) {
-            camera.changeInterval(1000);
+            if(camera.changeInterval) camera.changeInterval(1000);
           }
       });
   });
