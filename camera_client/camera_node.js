@@ -8,7 +8,7 @@ logger.info('Start IOT Camera Node');
 var conf = require('config');
 
 // local utils
-var Camera = require('../utils/camera').Camera
+var Camera = require('../utils/camera.js').Camera;
 var Serial = require('../utils/' + conf.serial_mode).Serial
 var RpcClient = require('../utils/rpc_wrapper.js').RpcClient;
 
@@ -16,8 +16,8 @@ var RpcClient = require('../utils/rpc_wrapper.js').RpcClient;
 var camera = new Camera(conf.camera_id);
 var serial = new Serial(conf.serial_dev);
 
+// add to rpc
 var server_url = conf.rpc_url + conf.rpc_namespase;
-console.log(server_url);
 var rpc_client = new RpcClient(server_url, conf.rpc_passwd);
 rpc_client.addObject(camera, 'camera');
 rpc_client.addObject(serial, 'serial');

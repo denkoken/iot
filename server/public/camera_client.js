@@ -6,6 +6,7 @@ var ImageViewer = React.createClass({
   componentDidMount() {
 		this.ctx = ReactDOM.findDOMNode(this.refs.canvas).getContext('2d');
     socket.on('frame', this.onFrame);
+    socket.emit('frame'); // initial request
   },
   onFrame(data){
     var that = this;

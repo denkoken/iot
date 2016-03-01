@@ -17,10 +17,10 @@ exports.Camera = function(id) {
 
   this.settings = {
     size: {width: 320, height: 240},
-    interval_time: 100,
+    interval_time: 1000,
     min_interval_time: 100, // depend on camera device
     resize: {enabled: false, width: 320, height: 240},
-    encode: {ext: '.jpg', jpegQuality: 80}
+    encode: {ext: '.jpg', jpegQuality: 70}
   };
 
   // open camera
@@ -58,7 +58,7 @@ exports.Camera = function(id) {
   }
 
   // capture size
-  this.setCaptureSize = function(width, height) {
+  this.setCaptureSize = function(width, height, callback) {
     if (!this.camera) return;
     if (width) this.settings.size.width = width;
     if (height) this.settings.size.height = height;
@@ -67,15 +67,16 @@ exports.Camera = function(id) {
     logger.info('Set camera capture size (' +
                 this.settings.size.width + ', ' +
                 this.settings.size.height + ')');
+    if(callback) callback();
   }
 
   // get encoded image
-  this.get = function() {
-    return buff;
+  this.get = function(callback) {
+    if(callback) callback(buff);
   }
 
   // capture interval
-  this.changeInterval = function(ms) {
+  this.changeInterval = function(ms, callback) {
     // lower limit
     if(ms < this.settings.min_interval_time){
       ms = this.settings.min_interval_time;
@@ -90,6 +91,8 @@ exports.Camera = function(id) {
     cap_interval = setInterval(function () {
       update();
     }, ms);
+
+    if(callback) callback();
   }
 
   // initial settings

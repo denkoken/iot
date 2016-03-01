@@ -1,11 +1,20 @@
 var log4js = require('log4js');
 var logger = log4js.getLogger('system');
 
+var safecall = function() {
+  var obj = arguments[0];
+  var func_name = arguments[1];
+  var args = Array.prototype.slice.call(arguments, 2);
+  var func = obj[func_name];
+  if(func) func.apply(obj, args);
+  else logger.debug('undefined call');
+}
+
 
 // Register camera viewer to express and socket.io
 exports.registerCameraApp = function(app, io, camera, serial) {
   // default camera interval
-  if(camera.changeInterval) camera.changeInterval(1000);
+  safecall(camera, 'changeInterval', 1000, function(){});
 
   // express page
   app.get('/camera', function(req, res){
@@ -33,14 +42,15 @@ exports.registerCameraApp = function(app, io, camera, serial) {
 
       // scale capture interval
       if (user_cnt == 0) {
-        if(camera.changeInterval) camera.changeInterval(100);
+        safecall(camera, 'changeInterval', 100, function(){});
       }
       user_cnt++;
 
       // event : capture frame
-      socket.emit('frame', camera.get());
       socket.on('frame', function() {
-          socket.emit('frame', camera.get());
+          safecall(camera, 'get', function(ret) {
+              socket.emit('frame', ret);
+          });
       });
 
       // event : servo control
@@ -49,9 +59,10 @@ exports.registerCameraApp = function(app, io, camera, serial) {
           var angle_y = parseInt(data.y * 50 + 60);
           logger.debug('Servo move : ' + angle_x + ', ' + angle_y);
 
-          serial.setCameraAngle(0, angle_x, function() { // TODO configure
-              serial.setCameraAngle(1, angle_y);
-          });
+          safecall(serial, 'setCameraAngle', 0, angle_x, function() { // TODO configure
+          safecall(serial, 'setCameraAngle', 1, angle_y, function() {
+              logger.debug('serial setCameraAngle finished');
+          });});
       });
 
       // event : disconnect
@@ -62,7 +73,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
           user_cnt--;
           // scale capture interval
           if (user_cnt == 0) {
-            if(camera.changeInterval) camera.changeInterval(1000);
+            safecall(camera, 'changeInterval', 1000, function(){});
           }
       });
   });

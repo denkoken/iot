@@ -2,6 +2,11 @@ var log4js = require('log4js');
 var logger = log4js.getLogger('system');
 
 // Buffering RPC (call only 'server -> client')
+// Last arguments should be callback, and last arguments of the registered
+// object functions also must be callback.
+// example)
+// on server : server.obj.method(arg1, arg2, function(ret){ ... });
+// on client : will call obj.method(arg1, arg2, function(){ emit to server } )
 
 exports.RpcServer = function(io, namespase, passwd) {
   var that = this;
@@ -14,46 +19,69 @@ exports.RpcServer = function(io, namespase, passwd) {
 
   this.startServer = function() {
     io.of(namespase).on('connection', function(socket) {
-        logger.info('RPC connection established')
+        logger.info('RPC connection established');
         var authed = false;
         var obj_names = new Array();
+
         // Authorizing
         socket.on('auth', function(data) {
             if(data.passwd === passwd) {
-              logger.info('RPC authorized')
+              logger.info('RPC authorized');
               authed = true;
             }
         });
+
         // Add client function
         socket.on('add_obj', function(data) {
-            logger.info('RPC add_objfunc "' + data.obj + "'")
+            logger.trace('RPC add ' + data.obj);
             var obj_name = data.obj;
             var func_names = data.funcs;
             obj_names.push(obj);
-            // register object
+
+            // register object to that
             if(!that[obj_name]) that[obj_name] = {};
             var obj = that[obj_name];
+
             // register functions
             func_names.forEach(function(func_name) {
                 // unique method name
                 var id = obj_name + '.' + func_name;
-                // register function
-                (function(id, obj, obj_name, func_name){
-                    var buffer = undefined;
+                // register function and returning event
+                (function(id, obj, obj_name, func_name) {
+                    // callback queue
+                    var callbacks = new Array();
+                    // register method
                     obj[func_name] = function() {
-                      logger.info('RPC function "' + obj_name + '.' + func_name + '" is called');
+                      logger.trace('RPC ' + id + ' is called');
                       if(!authed) {
                         logger.error('RPC is not authorized');
                         return;
                       }
+                      var args = Array.prototype.slice.call(arguments, 0,
+                                                        arguments.length - 1);
+                      var callback = arguments[arguments.length - 1];
+                      // check callback
+                      if(arguments.length === 0 ||
+                          typeof callback !== "function") {
+                        logger.warn('RPC last argument should be callback');
+                        // arguments to array
+                        args = Array.prototype.slice.call(arguments);
+                        callback = function(ret) {
+                          logger.debug('RPC ' + id + ' return');
+                        };
+                      }
+                      callbacks.push(callback);
+
                       // request function call
-                      socket.emit('call:' + id, {args: arguments });
-                      // returning
-                      socket.on('ret:' + id, function(ret) {
-                          buffer = ret;
-                      });
-                      return buffer;
+                      socket.emit('call:' + id, {args: args});
                     };
+
+                    // returning event
+                    socket.on('ret:' + id, function(ret) {
+                        logger.trace('RPC ' + id + ' callback');
+                        var callback = callbacks.shift();
+                        if(callback) callback.apply(callback, ret);
+                    });
                 })(id, obj, obj_name, func_name);
             });
         });
@@ -81,41 +109,60 @@ exports.RpcClient = function(server_url, passwd) {
   };
 
   this.connectServer = function() {
-    logger.info('Try to connect RPC server')
+    logger.info('Try to connect RPC server: ' + server_url);
     var socket = client.connect(server_url);
+
     // On Connect
     socket.on('connect', function() {
-        logger.info('RPC connection is established.')
+        logger.info('RPC connection is established');
         // First authorize
         socket.emit('auth', {passwd: passwd});
 
         // Add objects
-        for (var obj_name in objs) {
+        for(var obj_name in objs) {
           var obj = objs[obj_name];
+
           // Add rpc function
           var func_names = new Array();
           for(var func_name in obj) {
+            // type check
             if(typeof obj[func_name] !== "function") continue;
             func_names.push(func_name);
+
             // unique method name
             var id = obj_name + '.' + func_name;
             // Event: method call
             (function(id, obj, obj_name, func_name) {
                 socket.on('call:' + id, function(data) {
-                    logger.info('RPC client fanction "' + id + '" is called')
-                    var ret = obj[func_name].apply(obj, data.args);
-                    socket.emit('ret:' + id, ret);
+                    logger.trace('RPC ' + id + ' is called');
+
+                    // append callback to args
+                    var callback = function() {
+                      logger.trace('RPC ' + id + ' callback emit');
+                      // arguments to array
+                      var ret = Array.prototype.slice.call(arguments);
+                      // returning emit
+                      socket.emit('ret:' + id, ret);
+                    };
+                    Array.prototype.push.call(data.args, callback);
+
+                    // call
+                    obj[func_name].apply(obj, data.args);
                 });
             })(id, obj, obj_name, func_name);
           }
-          logger.debug('Emit add_obj "' + obj_name + '", funcs "' + func_names + '"')
+
+          // Emit object info to server
+          logger.trace('RPC add "' + obj_name + '", "' + func_names + '"');
           socket.emit('add_obj', {obj: obj_name, funcs: func_names});
         }
     });
     // On Disconnect
     socket.on('disconnect', function() {
         logger.info('RPC connection closed');
+        // new connection (clear events)
+        logger.info('Try to reconnect RPC server: ' + server_url);
+        socket = client.connect(server_url);
     });
-  }
-
+  };
 };

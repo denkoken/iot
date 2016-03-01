@@ -61,15 +61,18 @@ io.use(function(socket, next){
 
 
 // local utils
+// var Camera = require('../utils/camera.js').Camera;
 var RpcServer = require('../utils/rpc_wrapper.js').RpcServer;
-var Viewer = require('../utils/camera_viewer.js');
+var Viewer = require('./app/camera_viewer.js');
 // TODO Add more applications (e.g. chat, admin page, log viewer)
 
 // applications
 var rpc_server = new RpcServer(io, conf.rpc_namespase, conf.rpc_passwd);
+// var camera = new Camera(conf.camera_id);
 var camera = rpc_server.getObject('camera');
 var serial = rpc_server.getObject('serial');
 rpc_server.startServer();
+
 Viewer.registerCameraApp(app, io, camera, serial); // '/camera'
 
 
