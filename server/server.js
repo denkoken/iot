@@ -99,7 +99,7 @@ app.post('/login', function(req, res) {
         }
 
         if(result.length === 0 && query.name !== 'debug') { // TODO remove debug
-          res.json({message: 'Invalid user or password'});
+          res.json({message: 'Invalid user name or password'});
         } else {
           if(req.session.user) {
             res.json({message: 'Multiple login'});

@@ -1,6 +1,6 @@
 {
-  "name": "node-InteractiveObservingT",
-  "version": "0.0.0",
+  "name": "node-InteractiveObservingT_CameraNode",
+  "version": "0.0.1",
   "description": "",
   "main": "camera_node.js",
   "scripts": {
