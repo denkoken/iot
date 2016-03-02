@@ -51,7 +51,7 @@ exports.RpcServer = function(io, namespase, passwd) {
     });
   };
 
-  this.startServer = function() {
+  this.start = function() {
     io.of(namespase).on('connection', function(socket) {
         logger.info('RPC connection established');
         var authed = false;
@@ -132,7 +132,7 @@ exports.RpcClient = function(server_url, passwd) {
     });
   };
 
-  this.connectServer = function() {
+  this.connect = function() {
     logger.info('Try to connect RPC server: ' + server_url);
     var socket = client.connect(server_url);
 
@@ -167,9 +167,11 @@ exports.RpcClient = function(server_url, passwd) {
     // On Disconnect
     socket.on('disconnect', function() {
         logger.info('RPC connection closed');
-        // new connection (clear events)
+        // close socket (clear event)
+        socket.disconnect();
+        // new connection (register new events)
         logger.info('Try to reconnect RPC server: ' + server_url);
-        socket = client.connect(server_url);
+        setTimeout(function() { that.connect(); }, 10);
     });
   };
 };

@@ -73,7 +73,7 @@ var Viewer = require('./app/camera_viewer.js');
 var rpc_server = new RpcServer(io, conf.rpc.namespase, conf.rpc.passwd);
 var camera = rpc_server.getObject('camera');
 var serial = rpc_server.getObject('serial');
-rpc_server.startServer();
+rpc_server.start();
 
 Viewer.registerCameraApp(app, io, camera, serial, {
     interval_ms: conf.camera_viewer.interval

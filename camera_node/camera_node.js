@@ -21,4 +21,4 @@ var server_url = conf.rpc.url + conf.rpc.namespase;
 var rpc_client = new RpcClient(server_url, conf.rpc.passwd);
 rpc_client.addObject(camera, 'camera');
 rpc_client.addObject(serial, 'serial');
-rpc_client.connectServer();
+rpc_client.connect();
