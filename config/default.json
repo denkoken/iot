@@ -1,10 +1,21 @@
 {
-  "camera_id": 0,
-  "serial_dev": "/dev/ttyACM0",
-  "serial_mode": "serial",
-  "db_name" : "mongodb://localhost/server_user",
-  "collection_name" : "users",
-  "rpc_url" : "http://localhost:3000",
-  "rpc_namespase" : "/rpc",
-  "rpc_passwd" : "SET_ANY_STRING"
+  "camera": {
+    "id": 0
+  },
+  "serial": {
+    "dev": "/dev/ttyACM0",
+    "mode": "serial"
+  },
+  "db": {
+    "name" : "mongodb://localhost/server_user",
+    "collection_name" : "users"
+  },
+  "rpc": {
+    "url" : "http://localhost:3000",
+    "namespase" : "/rpc",
+    "passwd" : "SET_ANY_STRING"
+  },
+  "camera_viewer": {
+    "interval" : 200
+  }
 }

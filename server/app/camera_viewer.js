@@ -17,14 +17,17 @@ var safecall = function() {
 
 
 // --- Register camera viewer to express and socket.io ---
-exports.registerCameraApp = function(app, io, camera, serial) {
+exports.registerCameraApp = function(app, io, camera, serial, settings) {
+  // camera interval limit
+  var interval_ms = settings.interval_ms;
+
   // default camera interval
   safecall(camera, 'changeInterval', 1000, function(){});
 
   // express page
   app.get('/camera', function(req, res){
       // *** check login user ***
-      if(req.session.user) {
+      if (req.session.user) {
         res.render('main.ejs', {script: 'camera_client.js'});
       } else {
         res.redirect('/');
@@ -37,7 +40,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
   io.of('/camera').on('connection', function(socket) {
 
       // *** check login user ***
-      if(!socket.request.session.user){
+      if (!socket.request.session.user) {
         logger.info('No-login user access (socket.io /camera)');
         socket.disconnect();
         return;
@@ -52,11 +55,18 @@ exports.registerCameraApp = function(app, io, camera, serial) {
       // append user to list
       user_list.push(socket.request.session.user);
 
-      // event : capture frame
+      // event : emit captured frame
+      var preemit_ms = Date.now();
       socket.on('frame', function() {
-          safecall(camera, 'get', function(ret) {
-              socket.emit('frame', ret);
-          });
+          // control emit interval
+          var next_ms = preemit_ms + interval_ms - Date.now();
+          if (next_ms < 0) next_ms = 0;
+          setTimeout(function() {
+            safecall(camera, 'get', function(ret) {
+                socket.emit('frame', ret);
+                preemit_ms = Date.now();
+            });
+          }, next_ms);
       });
 
       // event : servo control

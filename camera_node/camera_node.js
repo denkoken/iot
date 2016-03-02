@@ -9,16 +9,16 @@ var conf = require('config');
 
 // local utils
 var Camera = require('../utils/camera.js').Camera;
-var Serial = require('../utils/' + conf.serial_mode).Serial;
+var Serial = require('../utils/' + conf.serial.mode).Serial;
 var RpcClient = require('../utils/rpc_wrapper.js').RpcClient;
 
 // applications
-var camera = new Camera(conf.camera_id);
-var serial = new Serial(conf.serial_dev);
+var camera = new Camera(conf.camera.id);
+var serial = new Serial(conf.serial.dev);
 
 // add to rpc
-var server_url = conf.rpc_url + conf.rpc_namespase;
-var rpc_client = new RpcClient(server_url, conf.rpc_passwd);
+var server_url = conf.rpc.url + conf.rpc.namespase;
+var rpc_client = new RpcClient(server_url, conf.rpc.passwd);
 rpc_client.addObject(camera, 'camera');
 rpc_client.addObject(serial, 'serial');
 rpc_client.connectServer();

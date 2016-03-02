@@ -31,7 +31,7 @@ app.use(body_parser.urlencoded({extended: false}));
 
 // MongoDB for user sesstion
 var MongoStore = connect_mongo(express_session);
-mongoose.connect(conf.db_name, function(err) {
+mongoose.connect(conf.db.name, function(err) {
     if(err) {
       logger.error(err);
     } else {
@@ -42,7 +42,7 @@ var UserModel = mongoose.model('user', new mongoose.Schema({
       name : String,
       password : String
     }, {
-      collection : conf.collection_name
+      collection : conf.db.collection_name
     }
 )); 
 
@@ -62,18 +62,22 @@ io.use(function(socket, next){
 
 // local utils
 // var Camera = require('../utils/camera.js').Camera;
+// var Serial = require('../utils/' + conf.serial.mode).Serial;
 var RpcServer = require('../utils/rpc_wrapper.js').RpcServer;
 var Viewer = require('./app/camera_viewer.js');
 // TODO Add more applications (e.g. chat, admin page, log viewer)
 
 // applications
-var rpc_server = new RpcServer(io, conf.rpc_namespase, conf.rpc_passwd);
-// var camera = new Camera(conf.camera_id);
+// var camera = new Camera(conf.camera.id);
+// var serial = new Serial(conf.serial.dev);
+var rpc_server = new RpcServer(io, conf.rpc.namespase, conf.rpc.passwd);
 var camera = rpc_server.getObject('camera');
 var serial = rpc_server.getObject('serial');
 rpc_server.startServer();
 
-Viewer.registerCameraApp(app, io, camera, serial); // '/camera'
+Viewer.registerCameraApp(app, io, camera, serial, {
+    interval_ms: conf.camera_viewer.interval
+}); // '/camera'
 
 
 // login page
