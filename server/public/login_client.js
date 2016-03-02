@@ -9,7 +9,7 @@ var loginFormTitle = (
 
 var LoginForm = React.createClass({
     nameText: 'Name',
-    nameBgText: 'Enter your account name',
+    nameBgText: 'Enter your user name',
     passwordText: 'Password',
     passwordBgText: 'Enter your password',
     url: '',
