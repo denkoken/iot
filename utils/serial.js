@@ -52,6 +52,6 @@ exports.Serial = function(dev){
     this.sp.write(data, function(err, res){
         if(err) logger.error(err);
         if(callback) callback();
-    })
+    });
   };
 };

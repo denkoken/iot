@@ -9,7 +9,7 @@ var conf = require('config');
 
 // local utils
 var Camera = require('../utils/camera.js').Camera;
-var Serial = require('../utils/' + conf.serial_mode).Serial
+var Serial = require('../utils/' + conf.serial_mode).Serial;
 var RpcClient = require('../utils/rpc_wrapper.js').RpcClient;
 
 // applications

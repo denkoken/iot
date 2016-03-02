@@ -8,7 +8,7 @@ var ImageViewer = React.createClass({
         nameValue: '',
         passwordValue: '',
         comment: '',
-      }
+      };
     },
     componentDidMount() {
       this.ctx = ReactDOM.findDOMNode(this.refs.canvas).getContext('2d');

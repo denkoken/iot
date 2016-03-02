@@ -4,13 +4,13 @@ var logger = log4js.getLogger('system');
 var cv = require('opencv');
 
 // 1 pixel simple image
-var SimpleImage = function(encode){
+var simpleImage = function(encode){
   var mat = new cv.Matrix(1, 1, cv.Constants.CV_8UC3);
-  var buf = Buffer(3);
+  var buf = new Buffer(3);
   buf[0] = 0; buf[1] = 127; buf[2] = 0; // green image
   mat.put(buf);
   return mat.toBuffer(encode);
-}
+};
 
 exports.Camera = function(id) {
   var that = this;
@@ -32,7 +32,7 @@ exports.Camera = function(id) {
   }
 
   // encoded capture
-  var buff = SimpleImage(this.settings.encode);
+  var buff = simpleImage(this.settings.encode);
   // last update time
   var last_update = Date.now();
   // interval object
@@ -45,7 +45,7 @@ exports.Camera = function(id) {
       that.camera.read(function(err, im) {
           if (!err) {
             // image resize
-            var resize = that.settings.resize
+            var resize = that.settings.resize;
             if (resize.enabled) {
               im.resize(resize.width, resize.height);
             }
@@ -55,7 +55,7 @@ exports.Camera = function(id) {
           last_update = Date.now();
       });
     }
-  }
+  };
 
   // capture size
   this.setCaptureSize = function(width, height, callback) {
@@ -68,12 +68,12 @@ exports.Camera = function(id) {
                 this.settings.size.width + ', ' +
                 this.settings.size.height + ')');
     if(callback) callback();
-  }
+  };
 
   // get encoded image
   this.get = function(callback) {
     if(callback) callback(buff);
-  }
+  };
 
   // capture interval
   this.changeInterval = function(ms, callback) {
@@ -81,7 +81,7 @@ exports.Camera = function(id) {
     if(ms < this.settings.min_interval_time){
       ms = this.settings.min_interval_time;
     }
-    logger.info('Change camera capture interval (' + ms + ' ms)')
+    logger.info('Change camera capture interval (' + ms + ' ms)');
 
     // clear
     clearInterval(cap_interval);
@@ -93,7 +93,7 @@ exports.Camera = function(id) {
     }, ms);
 
     if(callback) callback();
-  }
+  };
 
   // initial settings
   this.setCaptureSize();

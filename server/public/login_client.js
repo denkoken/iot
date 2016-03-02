@@ -20,7 +20,7 @@ var LoginForm = React.createClass({
         nameValue: '',
         passwordValue: '',
         comment: '',
-      }
+      };
     },
     handleNameChange(e) {
       this.setState({nameValue: e.target.value});
@@ -79,7 +79,7 @@ var LoginForm = React.createClass({
                   <Alert bsStyle="danger" className="text-center">
                   {this.state.comment}
                   </Alert>
-                )
+                );
               }
             })()}
 

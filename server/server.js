@@ -8,7 +8,7 @@ logger.info('Start IOT Server');
 var body_parser = require('body-parser');
 var conf = require('config');
 var ejs = require('ejs');
-var express = require('express')
+var express = require('express');
 var express_session = require('express-session');
 var http = require('http');
 var socketio = require('socket.io');

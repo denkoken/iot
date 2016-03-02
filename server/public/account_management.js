@@ -8,7 +8,7 @@ var AccountManagementForm = React.createClass({
         nameValue: '',
         passwordValue: '',
         comment: '',
-      }
+      };
     },
     handleNameChange(e) {
       this.setState({nameValue: e.target.value});

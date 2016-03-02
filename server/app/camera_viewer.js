@@ -13,7 +13,7 @@ var safecall = function() {
   var func = obj[func_name];
   if(func) func.apply(obj, args);
   else logger.debug('Undefined call: ' + func_name + '()');
-}
+};
 
 
 // --- Register camera viewer to express and socket.io ---
@@ -31,7 +31,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
       }
   });
 
-  var user_list = new Array();
+  var user_list = [];
 
   // socket.io application
   io.of('/camera').on('connection', function(socket) {
@@ -46,7 +46,7 @@ exports.registerCameraApp = function(app, io, camera, serial) {
                   socket.request.session.user);
 
       // scale capture interval
-      if (user_list.length == 0) {
+      if (user_list.length === 0) {
         safecall(camera, 'changeInterval', 100, function(){});
       }
       // append user to list
@@ -81,9 +81,9 @@ exports.registerCameraApp = function(app, io, camera, serial) {
               if(v == socket.request.session.user) user_list.splice(i, 1);
           });
           // scale capture interval
-          if (user_list.length == 0) {
+          if (user_list.length === 0) {
             safecall(camera, 'changeInterval', 1000, function(){});
           }
       });
   });
-}
+};

@@ -39,11 +39,11 @@ exports.Serial = function(dev){
 
   this.getCameraAngle = function(axis, callback) {
     if(!this.sp.isOpen()) return;
-    logger.error('getCameraAngle() is not implemented')
+    logger.error('getCameraAngle() is not implemented');
   };
 
   this.setLed = function(value, callback) {
     if(!this.sp.isOpen()) return;
-    logger.error('setLed() is not implemented')
+    logger.error('setLed() is not implemented');
   };
 };
