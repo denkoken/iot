@@ -1,13 +1,10 @@
 var socket = io.connect('/camera');
 
 var ImageViewer = React.createClass({
-    width : 640,
-    height : 480,
     getInitialState() {
       return {
-        nameValue: '',
-        passwordValue: '',
-        comment: '',
+        width : 640,
+        height : 480,
       };
     },
     componentDidMount() {
@@ -21,18 +18,19 @@ var ImageViewer = React.createClass({
       var img = new Image();
       img.src = 'data:image/jpeg;base64,' + b64jpg;
       img.onload = function() {
-        that.ctx.drawImage(img, 0, 0, that.width, that.height);
+        that.ctx.drawImage(img, 0, 0, that.state.width, that.state.height);
         socket.emit('frame');
       };
     },
     handleClick(e) {
       var rect = e.target.getBoundingClientRect();
-      var clickX = (e.clientX - rect.left) / this.width * 2.0 - 1.0;
-      var clickY = (e.clientY - rect.top) / this.height * 2.0 - 1.0;
+      var clickX = (e.clientX - rect.left) / this.state.width * 2.0 - 1.0;
+      var clickY = (e.clientY - rect.top) / this.state.height * 2.0 - 1.0;
       socket.emit('move', {x: clickX, y: clickY});
     },
-    render(){
-      return <canvas ref='canvas' width={this.width} height={this.height}
+    render() {
+      return <canvas ref='canvas'
+              width={this.state.width} height={this.state.height}
               style={{backgroundColor: 'grey'}} onClick={this.handleClick} />;
     }
 });
