@@ -19,6 +19,11 @@ exports.RpcServer = function(io, namespase, passwd) {
 
   // register server side rpc call
   var registerServerCall = function (socket, id, obj, obj_name, func_name) {
+    if (obj[func_name]) {
+      logger.warn('RPC ' + id + ' is already registered');
+      return;
+    }
+
     // callback queue
     var callbacks = [];
     // register method
