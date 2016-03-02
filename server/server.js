@@ -38,7 +38,7 @@ mongoose.connect(conf.db.name, function(err) {
       logger.info('Connect mongodb');
     }
 });
-var UserModel = mongoose.model('user', new mongoose.Schema({
+var user_model = mongoose.model('user', new mongoose.Schema({
       name : String,
       password : String
     }, {
@@ -60,14 +60,15 @@ io.use(function(socket, next){
 });
 
 
-// local utils
+// local utility
 // var Camera = require('../utils/camera.js').Camera;
 // var Serial = require('../utils/' + conf.serial.mode).Serial;
 var RpcServer = require('../utils/rpc_wrapper.js').RpcServer;
+var Login = require('./app/login.js');
 var Viewer = require('./app/camera_viewer.js');
 // TODO Add more applications (e.g. chat, admin page, log viewer)
 
-// applications
+// utility instance
 // var camera = new Camera(conf.camera.id);
 // var serial = new Serial(conf.serial.dev);
 var rpc_server = new RpcServer(io, conf.rpc.namespase, conf.rpc.passwd);
@@ -75,47 +76,14 @@ var camera = rpc_server.getObject('camera');
 var serial = rpc_server.getObject('serial');
 rpc_server.start();
 
+// register applications
+Login.registerLoginApp(app, user_model, {
+    redirect: '/camera'
+}); // '/login'
 Viewer.registerCameraApp(app, io, camera, serial, {
     interval_ms: conf.camera_viewer.interval
 }); // '/camera'
 
-
-// login page
-app.get('/login', function(req, res) {
-    if(req.session.user) {
-      res.redirect('/camera');
-    } else {
-      res.render('main.ejs', {script: 'login_client.js'});
-    }
-});
-
-// login (authenticate user)
-app.post('/login', function(req, res) {
-    var name = req.body.name;
-    var password = req.body.password;
-    var query = {name: name, password: password};
-    logger.info('Login attempt : ' + name);
-
-    UserModel.find(query, function(err, result) {
-        if(err) {
-          logger.error(err);
-          return;
-        }
-
-        if(result.length === 0 && query.name !== 'debug') { // TODO remove debug
-          res.json({message: 'Invalid user name or password'});
-        } else {
-          if(req.session.user) {
-            res.json({message: 'Multiple login'});
-          } else {
-            // create session
-            logger.info('Create session:' + req.session.user);
-            req.session.user = name;
-            res.json({redirect: '/camera'});
-          }
-        }
-    });
-});
 
 // account management page
 app.get('/management', function(req, res) {
@@ -133,7 +101,7 @@ app.post('/management', function(req, res){
     var query = {name: name, password: password};
     logger.info('Create account : ' + name);
 
-    UserModel.create(query, function(err, result) {
+    user_model.create(query, function(err, result) {
         if(err) {
           logger.error(err);
           return;
