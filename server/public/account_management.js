@@ -73,13 +73,13 @@ var AccountManagementForm = React.createClass({
 });
 
 var AccountManagement = React.createClass({
-  render() {
-    return (
-      <div>
-          <AccountManagementForm />
-      </div>
-    );
-  }
+    render() {
+      return (
+        <div>
+            <AccountManagementForm />
+        </div>
+      );
+    }
 });
 
 ReactDOM.render(

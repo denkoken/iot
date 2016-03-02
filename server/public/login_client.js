@@ -90,13 +90,13 @@ var LoginForm = React.createClass({
 });
 
 var Login = React.createClass({
-  render() {
-    return (
-      <div>
-        <LoginForm />
-      </div>
-    );
-  }
+    render() {
+      return (
+        <div>
+          <LoginForm />
+        </div>
+      );
+    }
 });
 
 ReactDOM.render(
