@@ -71,7 +71,7 @@ var LoginForm = React.createClass({
               type="submit"
               className="center-block"
               bsStyle="primary"
-              value="Send" /> 
+              value="Login" />
 
             {(() => {
               if(this.state.comment) {
