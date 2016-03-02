@@ -13,7 +13,7 @@ exports.RpcServer = function(io, namespase, passwd) {
 
   // Get empty object
   this.getObject = function(obj_name) {
-    if(!this[obj_name]) this[obj_name] = {};
+    if (!this[obj_name]) this[obj_name] = {};
     return this[obj_name];
   };
 
@@ -28,7 +28,7 @@ exports.RpcServer = function(io, namespase, passwd) {
       var args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
       var callback = arguments[arguments.length - 1];
       // check callback
-      if(arguments.length === 0 ||
+      if (arguments.length === 0 ||
         typeof callback !== "function") {
         logger.warn('RPC last argument should be callback');
         // arguments to array
@@ -47,7 +47,7 @@ exports.RpcServer = function(io, namespase, passwd) {
     socket.on('ret:' + id, function(ret) {
         logger.trace('RPC ' + id + ' callback');
         var callback = callbacks.shift();
-        if(callback) callback.apply(null, ret);
+        if (callback) callback.apply(null, ret);
     });
   };
 
@@ -59,7 +59,7 @@ exports.RpcServer = function(io, namespase, passwd) {
 
         // Authorizing
         socket.on('auth', function(data) {
-            if(data.passwd === passwd) {
+            if (data.passwd === passwd) {
               logger.info('RPC authorized');
               authed = true;
             }
@@ -68,7 +68,7 @@ exports.RpcServer = function(io, namespase, passwd) {
         // Add client function
         socket.on('add_obj', function(data) {
             logger.trace('RPC add ' + data.obj);
-            if(!authed) {
+            if (!authed) {
               logger.error('RPC is not authorized');
               return;
             }
@@ -78,7 +78,7 @@ exports.RpcServer = function(io, namespase, passwd) {
             obj_names.push(obj_name);
 
             // register object to that
-            if(!that[obj_name]) that[obj_name] = {};
+            if (!that[obj_name]) that[obj_name] = {};
             var obj = that[obj_name];
 
             // register functions
@@ -143,14 +143,14 @@ exports.RpcClient = function(server_url, passwd) {
         socket.emit('auth', {passwd: passwd});
 
         // Add objects
-        for(var obj_name in objs) {
+        for (var obj_name in objs) {
           var obj = objs[obj_name];
 
           // Add rpc function
           var func_names = [];
-          for(var func_name in obj) {
+          for (var func_name in obj) {
             // type check
-            if(typeof obj[func_name] !== "function") continue;
+            if (typeof obj[func_name] !== "function") continue;
             func_names.push(func_name);
 
             // unique method name

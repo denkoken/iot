@@ -32,7 +32,7 @@ app.use(body_parser.urlencoded({extended: false}));
 // MongoDB for user sesstion
 var MongoStore = connect_mongo(express_session);
 mongoose.connect(conf.db.name, function(err) {
-    if(err) {
+    if (err) {
       logger.error(err);
     } else {
       logger.info('Connect mongodb');
@@ -87,7 +87,7 @@ Viewer.registerCameraApp(app, io, camera, serial, {
 
 // account management page
 app.get('/management', function(req, res) {
-    if(req.session.user) {
+    if (req.session.user) {
       logger.debug('management');
       res.render('main.ejs', {script: 'account_management.js'});
       logger.debug('render');
@@ -102,7 +102,7 @@ app.post('/management', function(req, res){
     logger.info('Create account : ' + name);
 
     user_model.create(query, function(err, result) {
-        if(err) {
+        if (err) {
           logger.error(err);
           return;
         }

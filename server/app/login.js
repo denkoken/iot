@@ -7,7 +7,7 @@ exports.registerLoginApp = function(app, user_model, settings) {
 
   // login page
   app.get('/login', function(req, res) {
-      if(req.session.user) {
+      if (req.session.user) {
         res.redirect(redirect);
       } else {
         res.render('main.ejs', {script: 'login_client.js'});
@@ -22,15 +22,15 @@ exports.registerLoginApp = function(app, user_model, settings) {
       logger.info('Login attempt : ' + name);
 
       user_model.find(query, function(err, result) {
-          if(err) {
+          if (err) {
             logger.error(err);
             return;
           }
 
-          if(result.length === 0 && query.name !== 'debug') { // TODO remove debug
+          if (result.length === 0 && query.name !== 'debug') { // TODO remove debug
             res.json({message: 'Invalid user name or password'});
           } else {
-            if(req.session.user) {
+            if (req.session.user) {
               res.json({message: 'Multiple login'});
             } else {
               // create session

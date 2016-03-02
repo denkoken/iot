@@ -31,8 +31,8 @@ var AccountManagementForm = React.createClass({
           success: function(res) {
             var message = res.message;
             var redirect = res.redirect;
-            if(message) this.setState({comment: message});
-            if(redirect) window.location = redirect;
+            if (message) this.setState({comment: message});
+            if (redirect) window.location = redirect;
           }.bind(this),
           error: function(xhr, status, err) {
             this.setState({comment: status});

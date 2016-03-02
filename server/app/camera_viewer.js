@@ -11,7 +11,7 @@ var safecall = function() {
   var func_name = arguments[1];
   var args = Array.prototype.slice.call(arguments, 2);
   var func = obj[func_name];
-  if(func) func.apply(obj, args);
+  if (func) func.apply(obj, args);
   else logger.debug('Undefined call: ' + func_name + '()');
 };
 
@@ -88,7 +88,7 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
 
           // remove user from list
           user_list.some(function(v, i) {
-              if(v == socket.request.session.user) user_list.splice(i, 1);
+              if (v == socket.request.session.user) user_list.splice(i, 1);
           });
           // scale capture interval
           if (user_list.length === 0) {

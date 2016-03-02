@@ -43,8 +43,8 @@ var LoginForm = React.createClass({
           success: function(res) {
             var message = res.message;
             var redirect = res.redirect;
-            if(message) this.setState({comment: message});
-            if(redirect) window.location = redirect;
+            if (message) this.setState({comment: message});
+            if (redirect) window.location = redirect;
           }.bind(this),
           error: function(xhr, status, err) {
             this.setState({comment: status});
@@ -74,7 +74,7 @@ var LoginForm = React.createClass({
               value="Login" />
 
             {(() => {
-              if(this.state.comment) {
+              if (this.state.comment) {
                 return (
                   <Alert bsStyle="danger" className="text-center">
                   {this.state.comment}
