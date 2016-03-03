@@ -55,6 +55,15 @@ var JoinForm = React.createClass({
       return (
        <Panel style={this.panelStyle} header={FormTitle}>
          <form onSubmit={this.handleSubmit}>
+	   {(() => {
+	    if (this.state.comment) {
+              return (
+	       <Alert bsStyle="danger" className="text-center">
+	       {this.state.comment}
+	       </Alert>
+	      );
+	    } 
+	   })()}
 	   <Input
 	     type="text" name="name"
 	     label={this.nameText}
@@ -73,15 +82,7 @@ var JoinForm = React.createClass({
 	     bsStyle="primary"
 	     value="Create" />
 
-	   {(() => {
-	    if (this.state.comment) {
-              return (
-	       <Alert bsStyle="danger" className="text-center">
-	       {this.state.comment}
-	       </Alert>
-	      );
-	    } 
-	   })()}
+	   
          </form>
        </Panel>
       );

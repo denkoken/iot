@@ -7,7 +7,8 @@ var Admin = React.createClass({
     render() {
       return (
         <div>
-	<a href="/join"> CreateAccount </a>
+	<a href="/join"> Create Account </a><br />
+	<a> Profile Settings </a> 
         </div>
       );
     }

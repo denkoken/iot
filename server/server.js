@@ -89,7 +89,7 @@ Viewer.registerCameraApp(app, io, camera, serial, {
 app.get('/admin', function(req, res) {
     if (req.session.user) {
       logger.debug('admin page');
-      res.render('main.ejs', {script: 'account_management.js'});
+      res.render('main.ejs', {script: 'admin.js'});
       logger.debug('render');
     } else {
     }
@@ -111,14 +111,26 @@ app.post('/join', function(req, res){
     var query = {name: name, password: password};
     logger.info('Create account : ' + name);
 
-    user_model.create(query, function(err, result) {
-        if (err) {
+    user_model.find({name: name}, function(err, result) {
+       if (err) {
           logger.error(err);
-          return;
-        }
+	  return;
+       } 
 
-        res.json({redirect: '/camera'});
+       if (result.length === 0) {
+	  logger.info('Create Account:' + name);
+          user_model.create(query , function(err, result) {
+             if (err) {
+                logger.error(err);
+                return;
+             }
+             res.json({redirect: '/camera'});
+          });
+       } else {
+          res.json({message: name + ' is already exist'});
+       }
     });
+    
 });
 
 // logout (delete session)
