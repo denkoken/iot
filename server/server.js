@@ -92,6 +92,7 @@ app.get('/admin', function(req, res) {
       res.render('main.ejs', {script: 'admin.js'});
       logger.debug('render');
     } else {
+      res.redirect('/login');
     }
 });
 
@@ -102,6 +103,7 @@ app.get('/join', function(req, res) {
       res.render('main.ejs', {script: 'join_form.js'});
       logger.debug('render');
     } else {
+      res.redirect('/login');
     }
 });
 
