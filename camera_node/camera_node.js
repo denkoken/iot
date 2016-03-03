@@ -7,12 +7,12 @@ logger.info('Start IOT Camera Node');
 // require
 var conf = require('config');
 
-// local utils
+// local utility
 var Camera = require('../utils/camera.js').Camera;
 var Serial = require('../utils/' + conf.serial.mode).Serial;
 var RpcClient = require('../utils/rpc_wrapper.js').RpcClient;
 
-// applications
+// utility instance
 var camera = new Camera(conf.camera.id);
 var serial = new Serial(conf.serial.dev);
 
