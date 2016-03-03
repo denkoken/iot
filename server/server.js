@@ -86,16 +86,26 @@ Viewer.registerCameraApp(app, io, camera, serial, {
 
 
 // account management page
-app.get('/management', function(req, res) {
+app.get('/admin', function(req, res) {
     if (req.session.user) {
-      logger.debug('management');
+      logger.debug('admin page');
       res.render('main.ejs', {script: 'account_management.js'});
       logger.debug('render');
     } else {
     }
 });
 
-app.post('/management', function(req, res){
+// account management page
+app.get('/join', function(req, res) {
+    if (req.session.user) {
+      logger.debug('join page');
+      res.render('main.ejs', {script: 'join_form.js'});
+      logger.debug('render');
+    } else {
+    }
+});
+
+app.post('/join', function(req, res){
     var name = req.body.name;
     var password = req.body.password;
     var query = {name: name, password: password};

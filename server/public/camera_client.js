@@ -61,6 +61,7 @@ var IOT = React.createClass({
         <div>
           <ImageViewer /><br />
           <UserList /><br />
+	  <a href="/admin"> admin </a><br />
           <a href="/logout"> logout </a>
         </div>
       );
