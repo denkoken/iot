@@ -62,7 +62,7 @@ io.use(function(socket, next){
 
 // local utility
 // var Camera = require('../utils/camera.js').Camera;
-// var Serial = require('../utils/' + conf.serial.mode).Serial;
+// var Serial = require('../utils/' + conf.serial.mode + '.js').Serial;
 var RpcServer = require('../utils/rpc_wrapper.js').RpcServer;
 var Login = require('./app/login.js');
 var Viewer = require('./app/camera_viewer.js');

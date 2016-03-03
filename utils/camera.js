@@ -24,9 +24,10 @@ exports.Camera = function(id) {
   };
 
   // open camera
+  var camera = null;
   try {
     logger.info('Open camera (' + id + ')');
-    this.camera = new cv.VideoCapture(id);
+    camera = new cv.VideoCapture(id);
   } catch (e) {
     logger.error(e.message);
   }
@@ -41,8 +42,8 @@ exports.Camera = function(id) {
   // capture
   var update = function() {
     var diff = Date.now() - last_update;
-    if (that.camera && diff > that.settings.min_interval_time){
-      that.camera.read(function(err, im) {
+    if (camera && diff > that.settings.min_interval_time){
+      camera.read(function(err, im) {
           if (!err) {
             // image resize
             var resize = that.settings.resize;
@@ -59,11 +60,11 @@ exports.Camera = function(id) {
 
   // capture size
   this.setCaptureSize = function(width, height, callback) {
-    if (!this.camera) return;
+    if (!camera) return;
     if (width) this.settings.size.width = width;
     if (height) this.settings.size.height = height;
-    this.camera.setWidth(this.settings.size.width);
-    this.camera.setHeight(this.settings.size.height);
+    camera.setWidth(this.settings.size.width);
+    camera.setHeight(this.settings.size.height);
     logger.info('Set camera capture size (' +
                 this.settings.size.width + ', ' +
                 this.settings.size.height + ')');

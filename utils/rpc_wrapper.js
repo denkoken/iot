@@ -8,17 +8,34 @@ var logger = log4js.getLogger('system');
 // on server : server.obj.method(arg1, arg2, function(ret){ ... });
 // on client : will call obj.method(arg1, arg2, function(){ emit to server } )
 
+var getDeepObject = function(obj, prop_array, create) {
+  var sub = obj;
+  prop_array.forEach(function(prop) {
+      if (create && !sub[prop]) sub[prop] = {};
+      sub = sub[prop];
+      if (typeof sub !== 'object') {
+        logger.error('Invalid prop_array: ' + obj + ' ' + prop_array);
+      }
+  });
+  return sub;
+};
+
 exports.RpcServer = function(io, namespase, passwd) {
   var that = this;
 
   // Get empty object
-  this.getObject = function(obj_name) {
-    if (!this[obj_name]) this[obj_name] = {};
-    return this[obj_name];
+  this.getObject = function() {
+    // arguments to array
+    var prop_array = Array.prototype.slice.call(arguments);
+    // create empty object
+    return getDeepObject(this, prop_array, true);
   };
 
   // register server side rpc call
-  var registerServerCall = function (socket, id, obj, obj_name, func_name) {
+  var registerServerCall = function (socket, obj, prop_array, func_name) {
+    var id = prop_array.concat([func_name]).join('.');
+    logger.trace('RPC add "' + id + '"');
+
     if (obj[func_name]) {
       logger.warn('RPC ' + id + ' is already registered');
       return;
@@ -34,7 +51,7 @@ exports.RpcServer = function(io, namespase, passwd) {
       var callback = arguments[arguments.length - 1];
       // check callback
       if (arguments.length === 0 ||
-        typeof callback !== "function") {
+        typeof callback !== 'function') {
         logger.warn('RPC last argument should be callback');
         // arguments to array
         args = Array.prototype.slice.call(arguments);
@@ -60,7 +77,7 @@ exports.RpcServer = function(io, namespase, passwd) {
     io.of(namespase).on('connection', function(socket) {
         logger.info('RPC connection established');
         var authed = false;
-        var obj_names = [];
+        var func_list = [];
 
         // Authorizing
         socket.on('auth', function(data) {
@@ -71,37 +88,27 @@ exports.RpcServer = function(io, namespase, passwd) {
         });
 
         // Add client function
-        socket.on('add_obj', function(data) {
-            logger.trace('RPC add ' + data.obj);
+        socket.on('add_func', function(data) {
             if (!authed) {
               logger.error('RPC is not authorized');
               return;
             }
-
-            var obj_name = data.obj;
-            var func_names = data.funcs;
-            obj_names.push(obj_name);
-
-            // register object to that
-            if (!that[obj_name]) that[obj_name] = {};
-            var obj = that[obj_name];
-
-            // register functions
-            func_names.forEach(function(func_name) {
-                // unique method name
-                var id = obj_name + '.' + func_name;
-                // register function and returning event
-                registerServerCall(socket, id, obj, obj_name, func_name);
+            func_list.push({
+                prop_array: data.prop_array,
+                func_name: data.func_name,
             });
+
+            // get object
+            var obj = getDeepObject(that, data.prop_array, true);
+            // register function and returning event
+            registerServerCall(socket, obj, data.prop_array, data.func_name);
         });
         // Remove function
         socket.on('disconnect', function() {
             logger.info('RPC connection closed');
-            obj_names.forEach(function(obj_name) {
-                var obj = that[obj_name];
-                for (var func in obj) {
-                  obj[func] = undefined;
-                }
+            func_list.forEach(function(data) {
+                var obj = getDeepObject(that, data.prop_array, false);
+                obj[data.func_name] = undefined;
             });
         });
     });
@@ -118,7 +125,11 @@ exports.RpcClient = function(server_url, passwd) {
   };
 
   // register event: rpc client method call
-  var registerClientCall = function(socket, id, obj, obj_name, func_name) {
+  var registerClientCall = function(socket, obj, prop_array, func_name) {
+    var id = prop_array.concat([func_name]).join('.');
+    logger.trace('RPC add "' + id + '"');
+
+    // Event: Rpc method call
     socket.on('call:' + id, function(data) {
         logger.trace('RPC ' + id + ' is called');
 
@@ -135,6 +146,22 @@ exports.RpcClient = function(server_url, passwd) {
         // call
         obj[func_name].apply(obj, data.args);
     });
+
+    // Emit function info to server
+    socket.emit('add_func', {prop_array: prop_array, func_name: func_name});
+  };
+
+  var addRpcFunction = function(obj, prop_array, socket) {
+    for (var prop_name in obj) {
+      var prop = obj[prop_name];
+      if (typeof prop === 'object') {
+        // recursive call
+        addRpcFunction(prop, prop_array.concat([prop_name]), socket);
+      } else if (typeof prop === 'function') {
+        // register method call event and emit
+        registerClientCall(socket, obj, prop_array, prop_name);
+      }
+    }
   };
 
   this.connect = function() {
@@ -148,26 +175,7 @@ exports.RpcClient = function(server_url, passwd) {
         socket.emit('auth', {passwd: passwd});
 
         // Add objects
-        for (var obj_name in objs) {
-          var obj = objs[obj_name];
-
-          // Add rpc function
-          var func_names = [];
-          for (var func_name in obj) {
-            // type check
-            if (typeof obj[func_name] !== "function") continue;
-            func_names.push(func_name);
-
-            // unique method name
-            var id = obj_name + '.' + func_name;
-            // register method call event
-            registerClientCall(socket, id, obj, obj_name, func_name);
-          }
-
-          // Emit object info to server
-          logger.trace('RPC add "' + obj_name + '", "' + func_names + '"');
-          socket.emit('add_obj', {obj: obj_name, funcs: func_names});
-        }
+        addRpcFunction(objs, [], socket);
     });
     // On Disconnect
     socket.on('disconnect', function() {
