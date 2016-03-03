@@ -1,5 +1,25 @@
 var socket = io.connect('/camera');
 
+var UserList = React.createClass({
+    getInitialState() {
+      return {
+        users : [],
+        usersText : '',
+      };
+    },
+    componentDidMount() {
+      socket.on('updateUsers', this.onUpdateUsers);
+      socket.emit('updateUsers'); // initial request
+    },
+    onUpdateUsers(data) {
+      var text = data.users.join(', ');
+      this.setState({users: data.users, usersText: text});
+    },
+    render() {
+      return (<div> Users : {this.state.usersText} </div>);
+    }
+});
+
 var ImageViewer = React.createClass({
     getInitialState() {
       return {
@@ -12,7 +32,7 @@ var ImageViewer = React.createClass({
       socket.on('frame', this.onFrame);
       socket.emit('frame'); // initial request
     },
-    onFrame(data){
+    onFrame(data) {
       var that = this;
       var b64jpg = btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
       var img = new Image();
@@ -40,6 +60,7 @@ var IOT = React.createClass({
       return (
         <div>
           <ImageViewer /><br />
+          <UserList /><br />
           <a href="/logout"> logout </a>
         </div>
       );

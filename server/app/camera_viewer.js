@@ -15,6 +15,10 @@ var safecall = function() {
   else logger.debug('Undefined call: ' + func_name + '()');
 };
 
+var emitUsers = function(socket, user_list, broadcast) {
+  if (broadcast) socket.broadcast.emit('updateUsers', {users: user_list});
+  else socket.emit('updateUsers', {users: user_list});
+};
 
 // --- Register camera viewer to express and socket.io ---
 exports.registerCameraApp = function(app, io, camera, serial, settings) {
@@ -48,12 +52,14 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
       logger.info('Connection socket.io /camera : ' +
                   socket.request.session.user);
 
+      // append user to list
+      user_list.push(socket.request.session.user);
+      emitUsers(socket, user_list, true);
+
       // scale capture interval
       if (user_list.length === 0) {
         safecall(camera, 'changeInterval', 100, function(){});
       }
-      // append user to list
-      user_list.push(socket.request.session.user);
 
       // event : emit captured frame
       var preemit_ms = Date.now();
@@ -81,6 +87,12 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
           });});
       });
 
+      // event : user list
+      socket.on('updateUsers', function(data) {
+          logger.debug('Update users request');
+          emitUsers(socket, user_list, false);
+      });
+
       // event : disconnect
       socket.on('disconnect', function() {
           logger.info('Disconnect socket.io /camera : ' +
@@ -90,6 +102,8 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
           user_list.some(function(v, i) {
               if (v == socket.request.session.user) user_list.splice(i, 1);
           });
+          emitUsers(socket, user_list, true);
+
           // scale capture interval
           if (user_list.length === 0) {
             safecall(camera, 'changeInterval', 1000, function(){});
