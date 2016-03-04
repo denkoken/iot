@@ -11,7 +11,10 @@ var logger = log4js.getLogger('system');
 var getDeepObject = function(obj, prop_array, create) {
   var sub = obj;
   prop_array.forEach(function(prop) {
-      if (create && !sub[prop]) sub[prop] = {};
+      if (create && !sub[prop]) {
+        logger.debug('Create empty obj: ' + prop);
+        sub[prop] = {};
+      }
       sub = sub[prop];
       if (typeof sub !== 'object') {
         logger.error('Invalid prop_array: ' + obj + ' ' + prop_array);
@@ -20,6 +23,7 @@ var getDeepObject = function(obj, prop_array, create) {
   return sub;
 };
 
+// --- Server side RPC ---
 exports.RpcServer = function(io, namespase, passwd) {
   var that = this;
 
@@ -115,6 +119,7 @@ exports.RpcServer = function(io, namespase, passwd) {
   };
 };
 
+// --- client side RPC ---
 exports.RpcClient = function(server_url, passwd) {
   var client = require('socket.io-client');
   var that = this;
@@ -187,4 +192,29 @@ exports.RpcClient = function(server_url, passwd) {
         setTimeout(function() { that.connect(); }, 10);
     });
   };
+};
+
+// --- Get object with creation ---
+// example)
+//  `safeget(obj, 'prop1', 'prop2');` means `obj.prop1.prop2`
+//
+exports.safeget = function() {
+  var obj = arguments[0];
+  var prop_array = Array.prototype.slice.call(arguments, 1);
+  return getDeepObject(obj, prop_array, true);
+};
+
+// --- Call method with existence check ---
+// example)
+//  `safecall(obj, 'method', arg1, arg2);` means `obj.method(arg1, arg2);`
+//
+exports.safecall = function() {
+  var obj = arguments[0];
+  var func_name = arguments[1];
+  var args = Array.prototype.slice.call(arguments, 2);
+  if (typeof obj === 'object' && obj[func_name]) {
+    obj[func_name].apply(obj, args);
+  } else {
+    logger.debug('Undefined call: ' + func_name + '()');
+  }
 };
