@@ -1,10 +1,15 @@
+// node-config allows c like comment statement.
 {
-  "camera": {
-    "id": 0
+  "io_node_local": {
+    "local1" : {
+      "camera": { "id": 1 }
+    }
   },
-  "serial": {
-    "dev": "/dev/ttyACM0",
-    "mode": "serial"
+  "io_node_remote": {
+    "remote1" : {
+      "camera": { "id": 0 },
+      "serial": { "dev": "/dev/ttyACM0", "mode": "serial" }
+    }
   },
   "db": {
     "name" : "mongodb://localhost/server_user",
@@ -13,7 +18,7 @@
   "rpc": {
     "url" : "http://localhost:3000",
     "namespase" : "/rpc",
-    "passwd" : "SET_ANY_STRING"
+    "passwd" : "SET_STRING" // Set secret password here.
   },
   "camera_viewer": {
     "interval" : 200

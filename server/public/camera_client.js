@@ -1,5 +1,9 @@
 var socket = io.connect('/camera');
 
+var Nav = ReactBootstrap.Nav;
+var NavItem = ReactBootstrap.NavItem;
+var Panel = ReactBootstrap.Panel;
+
 var UserList = React.createClass({
     getInitialState() {
       return {
@@ -17,6 +21,29 @@ var UserList = React.createClass({
     },
     render() {
       return (<div> Users : {this.state.usersText} </div>);
+    }
+});
+
+var IoNodeTab = React.createClass({
+    getInitialState() {
+      return {
+        activeKey : 1,
+      };
+    },
+    handleSelect(key) {
+      socket.emit('changeIoNode', {idx: key - 1}); // change to 0-index
+      this.setState({activeKey: key});
+    },
+    render() {
+      return (
+        <Nav bsStyle="tabs"
+             activeKey={this.state.activeKey}
+             onSelect={this.handleSelect}>
+          <NavItem eventKey={1}> NavItem 1 content</NavItem>
+          <NavItem eventKey={2}> NavItem 2 content</NavItem>
+          <NavItem eventKey={3}> NavItem 3 content</NavItem>
+        </Nav>
+      );
     }
 });
 
@@ -59,9 +86,12 @@ var IOT = React.createClass({
     render(){
       return (
         <div>
-          <ImageViewer /><br />
+          <Panel className='well'>
+            <IoNodeTab /><br />
+            <ImageViewer /><br />
+          </ Panel>
           <UserList /><br />
-	  <a href="/admin"> admin </a><br />
+          <a href="/admin"> admin </a><br />
           <a href="/logout"> logout </a>
         </div>
       );

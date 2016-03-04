@@ -212,7 +212,7 @@ exports.safecall = function() {
   var obj = arguments[0];
   var func_name = arguments[1];
   var args = Array.prototype.slice.call(arguments, 2);
-  if (typeof obj === 'object' && obj[func_name]) {
+  if (obj && typeof obj === 'object' && obj[func_name]) {
     obj[func_name].apply(obj, args);
   } else {
     logger.debug('Undefined call: ' + func_name + '()');

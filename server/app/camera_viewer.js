@@ -1,19 +1,10 @@
 var log4js = require('log4js');
 var logger = log4js.getLogger('system');
 
+var rpc_wrapper = require('../../utils/rpc_wrapper.js');
+var safeget = rpc_wrapper.safeget;
+var safecall = rpc_wrapper.safecall;
 
-// --- Call method with existence check ---
-// example)
-//  `safecall(obj, 'method', arg1, arg2);` means `obj.method(arg1, arg2);`
-//
-var safecall = function() {
-  var obj = arguments[0];
-  var func_name = arguments[1];
-  var args = Array.prototype.slice.call(arguments, 2);
-  var func = obj[func_name];
-  if (func) func.apply(obj, args);
-  else logger.debug('Undefined call: ' + func_name + '()');
-};
 
 var emitUsers = function(socket, user_list, broadcast) {
   if (broadcast) socket.broadcast.emit('updateUsers', {users: user_list});
@@ -21,12 +12,15 @@ var emitUsers = function(socket, user_list, broadcast) {
 };
 
 // --- Register camera viewer to express and socket.io ---
-exports.registerCameraApp = function(app, io, camera, serial, settings) {
-  // camera interval limit
+exports.registerCameraApp = function(app, io, io_nodes, settings) {
+  // config variables
   var interval_ms = settings.interval_ms;
 
   // default camera interval
-  safecall(camera, 'changeInterval', 1000, function(){});
+  io_nodes.forEach(function(io_node) {
+    var camera = safeget(io_node, 'camera');
+    safecall(camera, 'changeInterval', 1000, function(){});
+  });
 
   // express page
   app.get('/camera', function(req, res){
@@ -42,7 +36,6 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
 
   // socket.io application
   io.of('/camera').on('connection', function(socket) {
-
       // *** check login user ***
       if (!socket.request.session.user) {
         logger.info('No-login user access (socket.io /camera)');
@@ -56,7 +49,19 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
       user_list.push(socket.request.session.user);
       emitUsers(socket, user_list, true);
 
-      // scale capture interval
+      // current io_node variables
+      var camera = safeget(io_nodes[0], 'camera');
+      var serial = safeget(io_nodes[0], 'serial');
+      var changeIoNode = function(idx) {
+        if (0 <= idx && idx < io_nodes.length) {
+          camera = safeget(io_nodes[idx], 'camera');
+          serial = safeget(io_nodes[idx], 'serial');
+        } else {
+          logger.error('changeIoNode(): Invalid index (' + idx + ')');
+        }
+      };
+
+      // scale capture interval (n_user: 0 -> 1)
       if (user_list.length === 0) {
         safecall(camera, 'changeInterval', 100, function(){});
       }
@@ -89,8 +94,14 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
 
       // event : user list
       socket.on('updateUsers', function(data) {
-          logger.debug('Update users request');
+          logger.trace('socket.io request: usersUpdate');
           emitUsers(socket, user_list, false);
+      });
+
+      // event : change using io_node
+      socket.on('changeIoNode', function(data) {
+          logger.trace('socket.io request: changeIoNode');
+          changeIoNode(data.idx);
       });
 
       // event : disconnect
@@ -104,7 +115,7 @@ exports.registerCameraApp = function(app, io, camera, serial, settings) {
           });
           emitUsers(socket, user_list, true);
 
-          // scale capture interval
+          // scale capture interval (n_user: 1 -> 0)
           if (user_list.length === 0) {
             safecall(camera, 'changeInterval', 1000, function(){});
           }

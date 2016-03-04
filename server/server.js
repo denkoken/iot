@@ -4,6 +4,10 @@ var logger = log4js.getLogger('system');
 
 logger.info('Start IOT Server');
 
+// config base name
+var config_remote_base = 'io_node_remote';
+var config_local_base = 'io_node_local';
+
 // require
 var body_parser = require('body-parser');
 var conf = require('config');
@@ -15,7 +19,7 @@ var socketio = require('socket.io');
 var mongoose = require('mongoose');
 var connect_mongo = require('connect-mongo/es5');
 
-// instance
+// server instance
 var app = express();
 var server = http.createServer(app);
 var io = socketio(server);
@@ -61,30 +65,41 @@ io.use(function(socket, next){
 
 
 // local utility
-// var Camera = require('../utils/camera.js').Camera;
-// var Serial = require('../utils/' + conf.serial.mode + '.js').Serial;
+var IoNode = require('../utils/io_node.js').IoNode;
 var RpcServer = require('../utils/rpc_wrapper.js').RpcServer;
 var Login = require('./app/login.js');
 var Viewer = require('./app/camera_viewer.js');
-// TODO Add more applications (e.g. chat, admin page, log viewer)
 
 // utility instance
-// var camera = new Camera(conf.camera.id);
-// var serial = new Serial(conf.serial.dev);
 var rpc_server = new RpcServer(io, conf.rpc.namespase, conf.rpc.passwd);
-var camera = rpc_server.getObject('camera');
-var serial = rpc_server.getObject('serial');
+
+// Read io_node settings from config file
+var io_nodes = [];
+// local config
+for (var conf_name in conf.get(config_local_base)) {
+    logger.info('Add local io_node: ' + conf_name);
+    var local_config = conf.get([config_local_base, conf_name].join('.'));
+    io_nodes.push(new IoNode(local_config));
+}
+// remote config
+for (var conf_name in conf.get(config_remote_base)) {
+    logger.info('Add remote io_node: ' + conf_name);
+    io_nodes.push(rpc_server.getObject(conf_name));
+}
+
+// start RPC server
 rpc_server.start();
 
 // register applications
 Login.registerLoginApp(app, user_model, {
     redirect: '/camera'
 }); // '/login'
-Viewer.registerCameraApp(app, io, camera, serial, {
+Viewer.registerCameraApp(app, io, io_nodes, {
     interval_ms: conf.camera_viewer.interval
 }); // '/camera'
 
 
+// TODO Move Account management applications to another jsfile.
 // account management page
 app.get('/admin', function(req, res) {
     if (req.session.user) {
@@ -114,25 +129,24 @@ app.post('/join', function(req, res){
     logger.info('Create account : ' + name);
 
     user_model.find({name: name}, function(err, result) {
-       if (err) {
+        if (err) {
           logger.error(err);
-	  return;
-       } 
+          return;
+        }
 
-       if (result.length === 0) {
-	  logger.info('Create Account:' + name);
+        if (result.length === 0) {
+          logger.info('Create Account:' + name);
           user_model.create(query , function(err, result) {
-             if (err) {
+              if (err) {
                 logger.error(err);
                 return;
-             }
-             res.json({redirect: '/camera'});
+              }
+              res.json({redirect: '/camera'});
           });
-       } else {
+        } else {
           res.json({message: name + ' is already exist'});
-       }
+        }
     });
-    
 });
 
 // logout (delete session)
