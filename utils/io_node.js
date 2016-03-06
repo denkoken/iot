@@ -1,6 +1,8 @@
 var log4js = require('log4js');
 var logger = log4js.getLogger('system');
 
+
+// --- Extended IoNode array ---
 exports.IoNodeCollection = function() {
   var listeners = [];
 
@@ -29,6 +31,8 @@ exports.IoNodeCollection = function() {
 };
 exports.IoNodeCollection.prototype = new Array();
 
+
+// --- IoNode ---
 exports.IoNode = function(name, settings) {
 
   // node name

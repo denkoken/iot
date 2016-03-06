@@ -29,6 +29,11 @@ var getDeepObject = function(obj, prop_array) {
 };
 
 // --- Server side RPC ---
+//  methods :
+//    * getObject(prop[, prop1, ...])
+//    * addOnChangeListener(prop[, prop1, ...], listener)
+//    * start()
+//
 exports.RpcServer = function(io, namespase, passwd) {
   var that = this;
 
@@ -169,6 +174,10 @@ exports.RpcServer = function(io, namespase, passwd) {
 };
 
 // --- client side RPC ---
+//  methods :
+//    * addObject(obj, obj_name)
+//    * connect()
+//
 exports.RpcClient = function(server_url, passwd) {
   var client = require('socket.io-client');
   var that = this;

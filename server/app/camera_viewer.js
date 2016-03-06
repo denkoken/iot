@@ -51,7 +51,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
       logger.info('Connection socket.io /camera : ' +
                   socket.request.session.user);
 
-      // append user to list
+      // append user to user_list
       user_list.push(socket.request.session.user);
       emitUsersInfo(socket, user_list, true);
 
@@ -62,6 +62,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
         io_nodes.forEach(function(io_node, idx) {
             safecall(io_node, 'getName', function(name) {
                 node_list[idx] = name;
+                // wait for all returning
                 back_cnt++;
                 if (back_cnt === io_nodes.length) {
                   emitNodesInfo(socket, node_list, true);
@@ -70,11 +71,12 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
         });
       };
       updateNodeList(); // initial update
-      io_nodes.addOnChangeListener(updateNodeList); // event listener
+      io_nodes.addOnChangeListener(updateNodeList); // add as event listener
 
       // current io_node variables
       var camera = null;
       var serial = null;
+      // change using io_node
       var changeIoNode = function(idx) {
         if (0 <= idx && idx < io_nodes.length) {
           camera = safeget(io_nodes[idx], 'camera');
