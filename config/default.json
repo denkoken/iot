@@ -2,12 +2,12 @@
 {
   "io_node_local": {
     "local1" : {
-      "camera": { "id": 1 }
+      "camera": { "id": 1, "ratio": [4, 3] }
     }
   },
   "io_node_remote": {
     "remote1" : {
-      "camera": { "id": 0 },
+      "camera": { "id": 0 , "ratio": [3, 4] },
       "serial": { "dev": "/dev/ttyACM0", "mode": "serial" }
     }
   },
