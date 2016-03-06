@@ -76,15 +76,15 @@ var rpc_server = new RpcServer(io, conf.rpc.namespase, conf.rpc.passwd);
 // Read io_node settings from config file
 var io_nodes = [];
 // local config
-for (var conf_name in conf.get(config_local_base)) {
-    logger.info('Add local io_node: ' + conf_name);
-    var local_config = conf.get([config_local_base, conf_name].join('.'));
-    io_nodes.push(new IoNode(local_config));
+for (var node_name in conf.get(config_local_base)) {
+    logger.info('Add local io_node: ' + node_name);
+    var local_config = conf.get([config_local_base, node_name].join('.'));
+    io_nodes.push(new IoNode(node_name, local_config));
 }
 // remote config
-for (var conf_name in conf.get(config_remote_base)) {
-    logger.info('Add remote io_node: ' + conf_name);
-    io_nodes.push(rpc_server.getObject(conf_name));
+for (var node_name in conf.get(config_remote_base)) {
+    logger.info('Add remote io_node: ' + node_name);
+    io_nodes.push(rpc_server.getObject(node_name));
 }
 
 // start RPC server

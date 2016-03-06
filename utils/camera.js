@@ -12,10 +12,10 @@ var simpleImage = function(encode){
   return mat.toBuffer(encode);
 };
 
-exports.Camera = function(id) {
+exports.Camera = function(id, ratio_array) {
   var that = this;
 
-  this.settings = {
+  var settings = { // TODO configure
     size: {width: 320, height: 240},
     interval_time: 1000,
     min_interval_time: 100, // depend on camera device
@@ -33,7 +33,7 @@ exports.Camera = function(id) {
   }
 
   // encoded capture
-  var buff = simpleImage(this.settings.encode);
+  var buff = simpleImage(settings.encode);
   // last update time
   var last_update = Date.now();
   // interval object
@@ -42,16 +42,16 @@ exports.Camera = function(id) {
   // capture
   var update = function() {
     var diff = Date.now() - last_update;
-    if (camera && diff > that.settings.min_interval_time){
+    if (camera && diff > settings.min_interval_time){
       camera.read(function(err, im) {
           if (!err) {
             // image resize
-            var resize = that.settings.resize;
+            var resize = settings.resize;
             if (resize.enabled) {
               im.resize(resize.width, resize.height);
             }
             // save
-            buff = im.toBuffer(that.settings.encode);
+            buff = im.toBuffer(settings.encode);
           }
           last_update = Date.now();
       });
@@ -61,13 +61,13 @@ exports.Camera = function(id) {
   // capture size
   this.setCaptureSize = function(width, height, callback) {
     if (!camera) return;
-    if (width) this.settings.size.width = width;
-    if (height) this.settings.size.height = height;
-    camera.setWidth(this.settings.size.width);
-    camera.setHeight(this.settings.size.height);
+    if (width) settings.size.width = width;
+    if (height) settings.size.height = height;
+    camera.setWidth(settings.size.width);
+    camera.setHeight(settings.size.height);
     logger.info('Set camera capture size (' +
-                this.settings.size.width + ', ' +
-                this.settings.size.height + ')');
+                settings.size.width + ', ' +
+                settings.size.height + ')');
     if (callback) callback();
   };
 
@@ -79,8 +79,8 @@ exports.Camera = function(id) {
   // capture interval
   this.changeInterval = function(ms, callback) {
     // lower limit
-    if (ms < this.settings.min_interval_time){
-      ms = this.settings.min_interval_time;
+    if (ms < settings.min_interval_time){
+      ms = settings.min_interval_time;
     }
     logger.info('Change camera capture interval (' + ms + ' ms)');
 
@@ -88,7 +88,7 @@ exports.Camera = function(id) {
     clearInterval(cap_interval);
 
     // new interval
-    this.settings.interval_time = ms;
+    settings.interval_time = ms;
     cap_interval = setInterval(function () {
       update();
     }, ms);
@@ -96,7 +96,12 @@ exports.Camera = function(id) {
     if (callback) callback();
   };
 
+  var ratio = ratio_array[0] / ratio_array[1];
+  this.getRatio = function(callback) {
+      callback(ratio);
+  };
+
   // initial settings
   this.setCaptureSize();
-  this.changeInterval(this.settings.interval_time);
+  this.changeInterval(settings.interval_time);
 };

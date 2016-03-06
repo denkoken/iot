@@ -33,7 +33,7 @@ if (!conf.has(config_name)) {
 var remote_config = conf.get(config_name);
 
 // utility instance
-var io_node = new IoNode(remote_config);
+var io_node = new IoNode(node_name, remote_config);
 
 // add to RPC
 var server_url = conf.rpc.url + conf.rpc.namespase;

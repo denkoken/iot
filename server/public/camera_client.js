@@ -5,94 +5,122 @@ var NavItem = ReactBootstrap.NavItem;
 var Panel = ReactBootstrap.Panel;
 
 var UserList = React.createClass({
-    getInitialState() {
-      return {
-        users : [],
-        usersText : '',
-      };
-    },
-    componentDidMount() {
-      socket.on('updateUsers', this.onUpdateUsers);
-      socket.emit('updateUsers'); // initial request
-    },
-    onUpdateUsers(data) {
-      var text = data.users.join(', ');
-      this.setState({users: data.users, usersText: text});
+    propTypes: {
+      users: React.PropTypes.array.isRequired,
     },
     render() {
-      return (<div> Users : {this.state.usersText} </div>);
+      return (<div>Users : {this.props.users.join(', ')}</div>);
     }
 });
 
 var IoNodeTab = React.createClass({
-    getInitialState() {
-      return {
-        activeKey : 1,
-      };
+    propTypes: {
+      nodes: React.PropTypes.array.isRequired,
+      activeNode: React.PropTypes.number.isRequired,
     },
     handleSelect(key) {
-      socket.emit('changeIoNode', {idx: key - 1}); // change to 0-index
-      this.setState({activeKey: key});
+      socket.emit('changeIoNode', {idx: key});
     },
     render() {
       return (
         <Nav bsStyle="tabs"
-             activeKey={this.state.activeKey}
+             activeKey={this.props.activeNode}
              onSelect={this.handleSelect}>
-          <NavItem eventKey={1}> NavItem 1 content</NavItem>
-          <NavItem eventKey={2}> NavItem 2 content</NavItem>
-          <NavItem eventKey={3}> NavItem 3 content</NavItem>
+          {
+            this.props.nodes.map((v, i, a) => {
+                if (v.name) {
+                  return (<NavItem key={i} eventKey={i}>{v.name}</NavItem>);
+                }
+            })
+          }
         </Nav>
       );
     }
 });
 
 var ImageViewer = React.createClass({
-    getInitialState() {
-      return {
-        width : 640,
-        height : 480,
-      };
-    },
+    width : 1000,
+    height : 1000 * 3 / 4,
     componentDidMount() {
-      this.ctx = ReactDOM.findDOMNode(this.refs.canvas).getContext('2d');
-      socket.on('frame', this.onFrame);
-      socket.emit('frame'); // initial request
+      this.canvas = ReactDOM.findDOMNode(this.refs.canvas);
+      this.ctx = this.canvas.getContext('2d');
+    },
+    clear() {
+      this.ctx.clearRect(0, 0, this.width, this.height);
     },
     onFrame(data) {
       var that = this;
       var b64jpg = btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
       var img = new Image();
       img.src = 'data:image/jpeg;base64,' + b64jpg;
-      img.onload = function() {
-        that.ctx.drawImage(img, 0, 0, that.state.width, that.state.height);
-        socket.emit('frame');
+      img.onload = () => {
+        that.ctx.drawImage(img, 0, 0, that.width, that.height);
+        socket.emit('frame'); // recursive event
       };
     },
     handleClick(e) {
       var rect = e.target.getBoundingClientRect();
-      var clickX = (e.clientX - rect.left) / this.state.width * 2.0 - 1.0;
-      var clickY = (e.clientY - rect.top) / this.state.height * 2.0 - 1.0;
-      socket.emit('move', {x: clickX, y: clickY});
+      var clickX = (e.clientX - rect.left) / rect.width * 2.0 - 1.0;
+      var clickY = (e.clientY - rect.top) / rect.height * 2.0 - 1.0;
+      socket.emit('moveServo', {x: clickX, y: clickY});
     },
     render() {
-      return <canvas ref='canvas'
-              width={this.state.width} height={this.state.height}
-              style={{backgroundColor: 'grey'}} onClick={this.handleClick} />;
+      return <canvas ref="canvas"
+              className="img-responsive"
+              width={this.width} height={this.height}
+              style={{backgroundColor: 'grey'}}
+              onClick={this.handleClick} />;
     }
 });
 
 var IOT = React.createClass({
+    getInitialState() {
+      return {
+        activeNode: 0,
+        users: [],
+        nodes: [],
+      };
+    },
+    componentDidMount() {
+      socket.on('frame', this.onFrame);
+      socket.on('changeIoNode', this.onChangeIoNode);
+      socket.on('usersInfo', this.onUsersInfo);
+      socket.on('nodesInfo', this.onNodesInfo);
+
+      // initial requests
+      socket.emit('usersInfo');
+      socket.emit('nodesInfo');
+      socket.emit('frame', this.state.activeNode);
+    },
+    onFrame(data) {
+      this.refs.viewer.onFrame(data);
+    },
+    onChangeIoNode(data) {
+      this.setState({activeNode: data.activeNode});
+    },
+    onUsersInfo(data) {
+      this.setState({users: data});
+    },
+    onNodesInfo(data) {
+      this.setState({nodes: data});
+    },
     render(){
       return (
-        <div>
-          <Panel className='well'>
-            <IoNodeTab /><br />
-            <ImageViewer /><br />
-          </ Panel>
-          <UserList /><br />
-          <a href="/admin"> admin </a><br />
-          <a href="/logout"> logout </a>
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-sm-7 col-xs-12 xs-nopadding">
+              <IoNodeTab
+                nodes={this.state.nodes}
+                activeNode={this.state.activeNode} />
+              <ImageViewer ref="viewer"
+                activeNode={this.state.activeNode} />
+            </div>
+            <div className="col-sm-5 col-xs-12">
+              <UserList users={this.state.users} />
+              <a href="/admin"> admin </a><br />
+              <a href="/logout"> logout </a>
+            </div>
+          </div>
         </div>
       );
     }

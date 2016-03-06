@@ -1,0 +1,6 @@
+/* bootstrap screen-xs */
+@media screen and (max-width: 768px) {
+  .xs-nopadding {
+    padding: 0px;
+  }
+}

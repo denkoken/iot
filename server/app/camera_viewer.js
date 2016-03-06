@@ -6,9 +6,14 @@ var safeget = rpc_wrapper.safeget;
 var safecall = rpc_wrapper.safecall;
 
 
-var emitUsers = function(socket, user_list, broadcast) {
-  if (broadcast) socket.broadcast.emit('updateUsers', {users: user_list});
-  else socket.emit('updateUsers', {users: user_list});
+var emitUsersInfo = function(socket, user_list, broadcast) {
+  if (broadcast) socket = socket.broadcast;
+  socket.emit('usersInfo', user_list);
+};
+
+var emitNodesInfo = function(socket, nodes_info, broadcast) {
+  if (broadcast) socket = socket.broadcast;
+  socket.emit('nodesInfo', nodes_info);
 };
 
 // --- Register camera viewer to express and socket.io ---
@@ -33,6 +38,19 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
   });
 
   var user_list = [];
+  var nodes_info = [];
+  // create nodes_info
+  io_nodes.forEach(function(io_node, idx) {
+      nodes_info[idx] = {name: ''};
+      // name
+      safecall(io_node, 'getName', function(name) {
+          nodes_info[idx].name = name;
+      });
+//       // camera ratio
+//       var camera = safeget(io_node, 'camera');
+//       safecall(camera, 'getRatio', function(ratio) {
+//       });
+  });
 
   // socket.io application
   io.of('/camera').on('connection', function(socket) {
@@ -47,19 +65,21 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
 
       // append user to list
       user_list.push(socket.request.session.user);
-      emitUsers(socket, user_list, true);
+      emitUsersInfo(socket, user_list, true);
 
       // current io_node variables
-      var camera = safeget(io_nodes[0], 'camera');
-      var serial = safeget(io_nodes[0], 'serial');
+      var camera = null;
+      var serial = null;
       var changeIoNode = function(idx) {
         if (0 <= idx && idx < io_nodes.length) {
           camera = safeget(io_nodes[idx], 'camera');
           serial = safeget(io_nodes[idx], 'serial');
+          socket.emit('changeIoNode', {activeNode: idx});
         } else {
-          logger.error('changeIoNode(): Invalid index (' + idx + ')');
+          logger.warn('changeIoNode(): Invalid index (' + idx + ')');
         }
       };
+      changeIoNode(0);
 
       // scale capture interval (n_user: 0 -> 1)
       if (user_list.length === 0) {
@@ -81,7 +101,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
       });
 
       // event : servo control
-      socket.on('move', function(data) {
+      socket.on('moveServo', function(data) {
           var angle_x = parseInt(data.x * 50 + 60); // TODO configure
           var angle_y = parseInt(data.y * 50 + 60);
           logger.debug('Servo move : ' + angle_x + ', ' + angle_y);
@@ -93,9 +113,15 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
       });
 
       // event : user list
-      socket.on('updateUsers', function(data) {
-          logger.trace('socket.io request: usersUpdate');
-          emitUsers(socket, user_list, false);
+      socket.on('usersInfo', function(data) {
+          logger.trace('socket.io request: usersInfo');
+          emitUsersInfo(socket, user_list, false);
+      });
+
+      // event : nodes info
+      socket.on('nodesInfo', function(data) {
+          logger.trace('socket.io request: nodesInfo');
+          emitNodesInfo(socket, nodes_info);
       });
 
       // event : change using io_node
@@ -113,7 +139,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
           user_list.some(function(v, i) {
               if (v == socket.request.session.user) user_list.splice(i, 1);
           });
-          emitUsers(socket, user_list, true);
+          emitUsersInfo(socket, user_list, true);
 
           // scale capture interval (n_user: 1 -> 0)
           if (user_list.length === 0) {
