@@ -2,7 +2,7 @@ var log4js = require('log4js');
 var logger = log4js.getLogger('system');
 
 // --- Socket.io RPC (call only 'server -> client') ---
-// Last arguments should be callback, and last arguments of the registered
+// Last arguments should be callback, and the last argument of the registered
 // object functions also must be callback.
 // example)
 // on server : server.obj.method(arg1, arg2, function(ret){ ... });
@@ -60,12 +60,12 @@ exports.RpcServer = function(io, namespase, passwd) {
     listeners.forEach(function(listener) {
         // check condition
         var ret = listener.prop_array.every(function(v, idx) {
-            if (v === prop_array[idx]) return true;
+            if (!v || v === prop_array[idx]) return true;
             else return false;
         });
         // call
         if (ret) {
-          logger.trace('Rpc call onChange listener');
+          logger.trace('RPC call onChange listener: ' + listener.prop_array);
           listener.listener();
         }
     });
