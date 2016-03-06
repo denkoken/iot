@@ -7,11 +7,13 @@ var safecall = rpc_wrapper.safecall;
 
 
 var emitUsersInfo = function(socket, user_list, broadcast) {
+  logger.trace('Emit user_list');
   if (broadcast) socket = socket.broadcast;
   socket.emit('usersInfo', user_list);
 };
 
 var emitNodesInfo = function(socket, node_list, broadcast) {
+  logger.trace('Emit node_list');
   if (broadcast) socket = socket.broadcast;
   socket.emit('nodesInfo', node_list);
 };
