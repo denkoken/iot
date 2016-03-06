@@ -8,17 +8,22 @@ var logger = log4js.getLogger('system');
 // on server : server.obj.method(arg1, arg2, function(ret){ ... });
 // on client : will call obj.method(arg1, arg2, function(){ emit to server } )
 
-var getDeepObject = function(obj, prop_array, create) {
+var getDeepObject = function(obj, prop_array) {
   var sub = obj;
-  prop_array.forEach(function(prop) {
-      if (create && !sub[prop]) {
+  prop_array.every(function(prop) {
+      // create property
+      if (!sub[prop]) {
         logger.debug('Create empty obj: ' + prop);
         sub[prop] = {};
       }
+      // recursively
       sub = sub[prop];
       if (typeof sub !== 'object') {
         logger.error('Invalid prop_array: ' + obj + ' ' + prop_array);
+        sub = {}; // for safety
+        return false;
       }
+      return true;
   });
   return sub;
 };
@@ -32,18 +37,45 @@ exports.RpcServer = function(io, namespase, passwd) {
     // arguments to array
     var prop_array = Array.prototype.slice.call(arguments);
     // create empty object
-    return getDeepObject(this, prop_array, true);
+    return getDeepObject(this, prop_array);
   };
+
+  var listeners = [];
+  // Register listener called on connection or disconnect
+  this.registerOnChangeListener = function() {
+    // arguments to array
+    var prop_array = Array.prototype.slice.call(arguments, 0,
+                                                arguments.length - 1);
+    var listener = arguments[arguments.length - 1];
+    if (arguments.length === 0 || typeof listener !== 'function') {
+      logger.error('RPC ' + prop_array + " : invalid listener");
+      return;
+    }
+    // register
+    logger.trace('Rpc register onChange listener: ' + prop_array);
+    listeners.push({prop_array: prop_array, listener: listener});
+  };
+  // call onChange listener
+  var callListener = function(prop_array) {
+    listeners.forEach(function(listener) {
+        // check condition
+        var ret = listener.prop_array.every(function(v, idx) {
+            if (v === prop_array[idx]) return true;
+            else return false;
+        });
+        // call
+        if (ret) {
+          logger.trace('Rpc call onChange listener');
+          listener.listener();
+        }
+    });
+  };
+
 
   // register server side rpc call
   var registerServerCall = function (socket, obj, prop_array, func_name) {
     var id = prop_array.concat([func_name]).join('.');
     logger.trace('RPC add "' + id + '"');
-
-    if (obj[func_name]) {
-      logger.warn('RPC ' + id + ' is already registered');
-      return;
-    }
 
     // callback queue
     var callbacks = [];
@@ -54,8 +86,7 @@ exports.RpcServer = function(io, namespase, passwd) {
       var args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
       var callback = arguments[arguments.length - 1];
       // check callback
-      if (arguments.length === 0 ||
-        typeof callback !== 'function') {
+      if (arguments.length === 0 || typeof callback !== 'function') {
         logger.warn('RPC last argument should be callback');
         // arguments to array
         args = Array.prototype.slice.call(arguments);
@@ -97,22 +128,40 @@ exports.RpcServer = function(io, namespase, passwd) {
               logger.error('RPC is not authorized');
               return;
             }
+
+            var prop_array = data.prop_array;
+            var func_name = data.func_name;
             func_list.push({
-                prop_array: data.prop_array,
-                func_name: data.func_name,
+                prop_array: prop_array,
+                func_name: func_name,
             });
 
             // get object
-            var obj = getDeepObject(that, data.prop_array, true);
+            var obj = getDeepObject(that, prop_array);
+
+            // check existence
+            if (obj[func_name]) {
+              var id = prop_array.concat([func_name]).join('.');
+              logger.warn('RPC ' + id + ' is already registered');
+              return;
+            }
+
+            // call onChange listener
+            callListener(prop_array.concat([func_name]));
+
             // register function and returning event
-            registerServerCall(socket, obj, data.prop_array, data.func_name);
+            registerServerCall(socket, obj, prop_array, func_name);
         });
         // Remove function
         socket.on('disconnect', function() {
             logger.info('RPC connection closed');
             func_list.forEach(function(data) {
-                var obj = getDeepObject(that, data.prop_array, false);
+                // remove
+                var obj = getDeepObject(that, data.prop_array);
                 obj[data.func_name] = undefined;
+
+                // call onChange listener
+                callListener(data.prop_array.concat([data.func_name]));
             });
         });
     });
@@ -201,7 +250,7 @@ exports.RpcClient = function(server_url, passwd) {
 exports.safeget = function() {
   var obj = arguments[0];
   var prop_array = Array.prototype.slice.call(arguments, 1);
-  return getDeepObject(obj, prop_array, true);
+  return getDeepObject(obj, prop_array);
 };
 
 // --- Call method with existence check ---
