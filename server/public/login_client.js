@@ -92,8 +92,10 @@ var LoginForm = React.createClass({
 var Login = React.createClass({
     render() {
       return (
-        <div>
-          <LoginForm />
+        <div className="container">
+          <div className="row">
+            <LoginForm />
+          </div>
         </div>
       );
     }
