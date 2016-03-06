@@ -2,7 +2,6 @@ var socket = io.connect('/camera');
 
 var Nav = ReactBootstrap.Nav;
 var NavItem = ReactBootstrap.NavItem;
-var Panel = ReactBootstrap.Panel;
 
 var UserList = React.createClass({
     propTypes: {
@@ -26,13 +25,11 @@ var IoNodeTab = React.createClass({
         <Nav bsStyle="tabs"
              activeKey={this.props.activeNode}
              onSelect={this.handleSelect}>
-          {
-            this.props.nodes.map((name, idx) => {
+          {this.props.nodes.map((name, idx) => {
                 if (name) {
                   return (<NavItem key={idx} eventKey={idx}>{name}</NavItem>);
                 }
-            })
-          }
+          })}
         </Nav>
       );
     }
@@ -40,7 +37,7 @@ var IoNodeTab = React.createClass({
 
 var ImageViewer = React.createClass({
     width : 1000,
-    height : 1000 * 3 / 4,
+    height : 1000 * 3 / 4, // TODO ratio
     componentDidMount() {
       this.canvas = ReactDOM.findDOMNode(this.refs.canvas);
       this.ctx = this.canvas.getContext('2d');
@@ -90,7 +87,7 @@ var IOT = React.createClass({
       // initial requests
       socket.emit('usersInfo');
       socket.emit('nodesInfo');
-      socket.emit('frame', this.state.activeNode);
+      socket.emit('frame');
     },
     onFrame(data) {
       this.refs.viewer.onFrame(data);
