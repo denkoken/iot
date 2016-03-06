@@ -17,8 +17,15 @@ var RpcClient = require('../utils/rpc_wrapper.js').RpcClient;
 
 // parse arguments
 if (process.argv.length < 3) {
-  logger.error('No arguments ( usage: npm start <remote_mode> ), ' +
-               '<remote_mode> is defined in "../config/default.json"');
+  var modes = [];
+  for (var mode in conf.get(config_base)) {
+    modes.push(mode);
+  }
+
+  logger.error('No arguments\n' +
+    '  usage: npm start <remote_mode>\n' +
+    '    <remote_mode> is defined in "../config/default.json"\n' +
+    '    current available modes : ' + modes.join(', '));
   process.exit();
 }
 
