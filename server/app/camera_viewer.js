@@ -11,9 +11,9 @@ var emitUsersInfo = function(socket, user_list, broadcast) {
   socket.emit('usersInfo', user_list);
 };
 
-var emitNodesInfo = function(socket, nodes_info, broadcast) {
+var emitNodesInfo = function(socket, node_list, broadcast) {
   if (broadcast) socket = socket.broadcast;
-  socket.emit('nodesInfo', nodes_info);
+  socket.emit('nodesInfo', node_list);
 };
 
 // --- Register camera viewer to express and socket.io ---
@@ -38,19 +38,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
   });
 
   var user_list = [];
-  var nodes_info = [];
-  // create nodes_info
-  io_nodes.forEach(function(io_node, idx) {
-      nodes_info[idx] = {name: ''};
-      // name
-      safecall(io_node, 'getName', function(name) {
-          nodes_info[idx].name = name;
-      });
-//       // camera ratio
-//       var camera = safeget(io_node, 'camera');
-//       safecall(camera, 'getRatio', function(ratio) {
-//       });
-  });
+  var node_list = [];
 
   // socket.io application
   io.of('/camera').on('connection', function(socket) {
@@ -67,6 +55,23 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
       user_list.push(socket.request.session.user);
       emitUsersInfo(socket, user_list, true);
 
+      // update node_list
+      var updateNodeList = function() {
+        node_list = []; // clear
+        var back_cnt = 0;
+        io_nodes.forEach(function(io_node, idx) {
+            safecall(io_node, 'getName', function(name) {
+                node_list[idx] = name;
+                back_cnt++;
+                if (back_cnt === io_nodes.length) {
+                  emitNodesInfo(socket, node_list, true);
+                }
+            });
+        });
+      };
+      updateNodeList(); // initial update
+      io_nodes.addOnChangeListener(updateNodeList); // event listener
+
       // current io_node variables
       var camera = null;
       var serial = null;
@@ -82,7 +87,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
       changeIoNode(0);
 
       // scale capture interval (n_user: 0 -> 1)
-      if (user_list.length === 0) {
+      if (user_list.length === 1) {
         safecall(camera, 'changeInterval', 100, function(){});
       }
 
@@ -121,7 +126,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
       // event : nodes info
       socket.on('nodesInfo', function(data) {
           logger.trace('socket.io request: nodesInfo');
-          emitNodesInfo(socket, nodes_info);
+          emitNodesInfo(socket, node_list, false);
       });
 
       // event : change using io_node
@@ -137,7 +142,8 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
 
           // remove user from list
           user_list.some(function(v, i) {
-              if (v == socket.request.session.user) user_list.splice(i, 1);
+              var idx = user_list.indexOf(socket.request.session.user);
+              if(idx >= 0) user_list.splice(idx, 1);
           });
           emitUsersInfo(socket, user_list, true);
 

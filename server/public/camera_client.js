@@ -27,9 +27,9 @@ var IoNodeTab = React.createClass({
              activeKey={this.props.activeNode}
              onSelect={this.handleSelect}>
           {
-            this.props.nodes.map((v, i, a) => {
-                if (v.name) {
-                  return (<NavItem key={i} eventKey={i}>{v.name}</NavItem>);
+            this.props.nodes.map((name, idx) => {
+                if (name) {
+                  return (<NavItem key={idx} eventKey={idx}>{name}</NavItem>);
                 }
             })
           }

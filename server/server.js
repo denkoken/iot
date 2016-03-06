@@ -5,7 +5,6 @@ var logger = log4js.getLogger('system');
 logger.info('Start IOT Server');
 
 // config base name
-var config_remote_base = 'io_node_remote';
 var config_local_base = 'io_node_local';
 
 // require
@@ -66,6 +65,7 @@ io.use(function(socket, next){
 
 // local utility
 var IoNode = require('../utils/io_node.js').IoNode;
+var IoNodeCollection = require('../utils/io_node.js').IoNodeCollection;
 var RpcServer = require('../utils/rpc_wrapper.js').RpcServer;
 var Login = require('./app/login.js');
 var Viewer = require('./app/camera_viewer.js');
@@ -73,19 +73,28 @@ var Viewer = require('./app/camera_viewer.js');
 // utility instance
 var rpc_server = new RpcServer(io, conf.rpc.namespase, conf.rpc.passwd);
 
+// available io_node list
+var io_nodes = new IoNodeCollection();
 // Read io_node settings from config file
-var io_nodes = [];
-// local config
 for (var node_name in conf.get(config_local_base)) {
     logger.info('Add local io_node: ' + node_name);
     var local_config = conf.get([config_local_base, node_name].join('.'));
     io_nodes.push(new IoNode(node_name, local_config));
 }
-// remote config
-for (var node_name in conf.get(config_remote_base)) {
-    logger.info('Add remote io_node: ' + node_name);
-    io_nodes.push(rpc_server.getObject(node_name));
-}
+// Adaptive remote io_nodes
+var onIoNodesChanged = function(ret) {
+    var node_name = ret.prop_array[0];
+    var obj = rpc_server.getObject(node_name);
+    if (ret.event_name === 'add') {
+      logger.info('New io_node: ' + node_name);
+      io_nodes.addAndPoll(obj);
+    } else if (ret.event_name === 'remove') {
+      logger.info('Remove io_node: ' + node_name);
+      io_nodes.removeAndPoll(obj);
+    }
+};
+// Register listener for `*.getName`
+rpc_server.addOnChangeListener('', 'getName', onIoNodesChanged);
 
 // start RPC server
 rpc_server.start();

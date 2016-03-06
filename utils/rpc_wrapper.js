@@ -40,9 +40,9 @@ exports.RpcServer = function(io, namespase, passwd) {
     return getDeepObject(this, prop_array);
   };
 
+  // Register listener called on connection and disconnect
   var listeners = [];
-  // Register listener called on connection or disconnect
-  this.registerOnChangeListener = function() {
+  this.addOnChangeListener = function() {
     // arguments to array
     var prop_array = Array.prototype.slice.call(arguments, 0,
                                                 arguments.length - 1);
@@ -52,11 +52,11 @@ exports.RpcServer = function(io, namespase, passwd) {
       return;
     }
     // register
-    logger.trace('Rpc register onChange listener: ' + prop_array);
+    logger.trace('Rpc addOnChange listener: ' + prop_array);
     listeners.push({prop_array: prop_array, listener: listener});
   };
-  // call onChange listener
-  var callListener = function(prop_array) {
+  // call onChangeListener
+  var callListener = function(prop_array, event_name) {
     listeners.forEach(function(listener) {
         // check condition
         var ret = listener.prop_array.every(function(v, idx) {
@@ -66,7 +66,7 @@ exports.RpcServer = function(io, namespase, passwd) {
         // call
         if (ret) {
           logger.trace('RPC call onChange listener: ' + listener.prop_array);
-          listener.listener();
+          listener.listener({prop_array: prop_array, event_name: event_name});
         }
     });
   };
@@ -146,11 +146,11 @@ exports.RpcServer = function(io, namespase, passwd) {
               return;
             }
 
-            // call onChange listener
-            callListener(prop_array.concat([func_name]));
-
             // register function and returning event
             registerServerCall(socket, obj, prop_array, func_name);
+
+            // call onChange listener
+            callListener(prop_array.concat([func_name]), 'add');
         });
         // Remove function
         socket.on('disconnect', function() {
@@ -161,7 +161,7 @@ exports.RpcServer = function(io, namespase, passwd) {
                 obj[data.func_name] = undefined;
 
                 // call onChange listener
-                callListener(data.prop_array.concat([data.func_name]));
+                callListener(data.prop_array.concat([data.func_name]), 'remove');
             });
         });
     });
