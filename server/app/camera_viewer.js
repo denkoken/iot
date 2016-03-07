@@ -21,6 +21,8 @@ var emitNodesInfo = function(socket, node_list, broadcast) {
 // --- Register camera viewer to express and socket.io ---
 exports.registerCameraApp = function(app, io, io_nodes, settings) {
   // config variables
+  var app_namespace = settings.app_namespace;
+  var io_namespace = settings.io_namespace;
   var interval_ms = settings.interval_ms;
 
   // default camera interval
@@ -30,7 +32,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
   });
 
   // express page
-  app.get('/camera', function(req, res){
+  app.get(app_namespace, function(req, res){
       // *** check login user ***
       if (req.session.user) {
         res.render('main.ejs', {script: 'camera_client.js'});
@@ -42,38 +44,38 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
   var user_list = [];
   var node_list = [];
 
+  // update node_list
+  var updateNodeList = function() {
+    node_list = []; // clear
+    var back_cnt = 0;
+    io_nodes.forEach(function(io_node, idx) {
+        safecall(io_node, 'getName', function(name) {
+            node_list[idx] = name;
+            // wait for all returning
+            back_cnt++;
+            if (back_cnt === io_nodes.length) {
+              emitNodesInfo(io.of(io_namespace), node_list, false);
+            }
+        });
+    });
+  };
+  updateNodeList(); // initial update
+  io_nodes.addOnChangeListener(updateNodeList); // add as event listener
+
   // socket.io application
-  io.of('/camera').on('connection', function(socket) {
+  io.of(io_namespace).on('connection', function(socket) {
       // *** check login user ***
       if (!socket.request.session.user) {
-        logger.info('No-login user access (socket.io /camera)');
+        logger.info('No-login user access (socket.io ' + io_namespace + ')');
         socket.disconnect();
         return;
       }
-      logger.info('Connection socket.io /camera : ' +
+      logger.info('Connection socket.io ' + io_namespace +' : ' +
                   socket.request.session.user);
 
       // append user to user_list
       user_list.push(socket.request.session.user);
       emitUsersInfo(socket, user_list, true);
-
-      // update node_list
-      var updateNodeList = function() {
-        node_list = []; // clear
-        var back_cnt = 0;
-        io_nodes.forEach(function(io_node, idx) {
-            safecall(io_node, 'getName', function(name) {
-                node_list[idx] = name;
-                // wait for all returning
-                back_cnt++;
-                if (back_cnt === io_nodes.length) {
-                  emitNodesInfo(socket, node_list, true);
-                }
-            });
-        });
-      };
-      updateNodeList(); // initial update
-      io_nodes.addOnChangeListener(updateNodeList); // add as event listener
 
       // current io_node variables
       var camera = null;
@@ -141,7 +143,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
 
       // event : disconnect
       socket.on('disconnect', function() {
-          logger.info('Disconnect socket.io /camera : ' +
+          logger.info('Disconnect socket.io ' + io_namespace +' : ' +
                       socket.request.session.user);
 
           // remove user from list

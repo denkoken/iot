@@ -4,9 +4,10 @@ var logger = log4js.getLogger('system');
 // --- Register login page to express ---
 exports.registerLoginApp = function(app, user_model, settings) {
   var redirect = settings.redirect;
+  var namespace = settings.namespace;
 
   // login page
-  app.get('/login', function(req, res) {
+  app.get(namespace, function(req, res) {
       if (req.session.user) {
         res.redirect(redirect);
       } else {
@@ -15,7 +16,7 @@ exports.registerLoginApp = function(app, user_model, settings) {
   });
 
   // user authentication
-  app.post('/login', function(req, res) {
+  app.post(namespace, function(req, res) {
       var name = req.body.name;
       var password = req.body.password;
       var query = {name: name, password: password};

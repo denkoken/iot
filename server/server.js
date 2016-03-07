@@ -101,9 +101,12 @@ rpc_server.start();
 
 // register applications
 Login.registerLoginApp(app, user_model, {
+    namespace: '/login',
     redirect: '/camera'
 }); // '/login'
 Viewer.registerCameraApp(app, io, io_nodes, {
+    app_namespace: '/camera',
+    io_namespace: '/camera',
     interval_ms: conf.camera_viewer.interval
 }); // '/camera'
 
