@@ -2,7 +2,7 @@ var log4js = require('log4js');
 log4js.configure('../config/log.json');
 var logger = log4js.getLogger('system');
 
-logger.info('Start IOT Camera Node');
+logger.info('Start IOT Remote Node');
 
 // config base name
 var config_base = 'io_node_remote';

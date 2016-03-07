@@ -8,16 +8,16 @@ edit `config/default.json` and `config/log.json`
 
 ### Setup and Run ###
 
-#### Web Server ####
+#### Web Server (and Local Node) ####
 ```
 cd server
 npm install
 npm start
 ```
 
-#### Camera Node ####
+#### Remote Node ####
 ```
-cd camera_node
+cd remote_node
 npm install
 sudo npm start  # sudo is needed for serial.
 ```
