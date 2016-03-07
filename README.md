@@ -1,4 +1,4 @@
-# Node.js Interactive Observing T  #
+# Denko-IOT  #
 
 ### Testing Environments ###
 * Ubuntu 14.04, Node.js 5.5.0, npm 3.3.12
