@@ -77,21 +77,21 @@ var rpc_server = new RpcServer(io, conf.rpc.namespace, conf.rpc.passwd);
 var io_nodes = new IoNodeCollection();
 // Read io_node settings from config file
 for (var node_name in conf.get(config_local_base)) {
-    logger.info('Add local io_node: ' + node_name);
-    var local_config = conf.get([config_local_base, node_name].join('.'));
-    io_nodes.push(new IoNode(node_name, local_config));
+  logger.info('Add local io_node: ' + node_name);
+  var local_config = conf.get([config_local_base, node_name].join('.'));
+  io_nodes.push(new IoNode(node_name, local_config));
 }
 // Adaptive remote io_nodes
 var onIoNodesChanged = function(ret) {
-    var node_name = ret.prop_array[0];
-    var obj = rpc_server.getObject(node_name);
-    if (ret.event_name === 'add') {
-      logger.info('New io_node: ' + node_name);
-      io_nodes.addAndPoll(obj);
-    } else if (ret.event_name === 'remove') {
-      logger.info('Remove io_node: ' + node_name);
-      io_nodes.removeAndPoll(obj);
-    }
+  var node_name = ret.prop_array[0];
+  var obj = rpc_server.getObject(node_name);
+  if (ret.event_name === 'add') {
+    logger.info('New io_node: ' + node_name);
+    io_nodes.addAndPoll(obj);
+  } else if (ret.event_name === 'remove') {
+    logger.info('Remove io_node: ' + node_name);
+    io_nodes.removeAndPoll(obj);
+  }
 };
 // Register listener for `*.getName`
 rpc_server.addOnChangeListener('', 'getName', onIoNodesChanged);
