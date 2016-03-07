@@ -17,7 +17,7 @@
   },
   "rpc": {
     "url" : "http://localhost:3000",
-    "namespase" : "/rpc",
+    "namespace" : "/rpc",
     "passwd" : "SET_STRING" // Set secret password here.
   },
   "camera_viewer": {

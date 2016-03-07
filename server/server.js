@@ -71,7 +71,7 @@ var Login = require('./app/login.js');
 var Viewer = require('./app/camera_viewer.js');
 
 // utility instance
-var rpc_server = new RpcServer(io, conf.rpc.namespase, conf.rpc.passwd);
+var rpc_server = new RpcServer(io, conf.rpc.namespace, conf.rpc.passwd);
 
 // available io_node list
 var io_nodes = new IoNodeCollection();

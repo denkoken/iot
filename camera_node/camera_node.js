@@ -43,7 +43,7 @@ var remote_config = conf.get(config_name);
 var io_node = new IoNode(node_name, remote_config);
 
 // add to RPC
-var server_url = conf.rpc.url + conf.rpc.namespase;
+var server_url = conf.rpc.url + conf.rpc.namespace;
 var rpc_client = new RpcClient(server_url, conf.rpc.passwd);
 rpc_client.addObject(io_node, node_name);
 rpc_client.connect();
