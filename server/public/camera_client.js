@@ -47,12 +47,13 @@ var ImageViewer = React.createClass({
     },
     onFrame(data) {
       var that = this;
-      var b64jpg = btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
+      var b64jpg = btoa(String.fromCharCode.apply(null,
+                                                  new Uint8Array(data.img)));
       var img = new Image();
       img.src = 'data:image/jpeg;base64,' + b64jpg;
       img.onload = () => {
         that.ctx.drawImage(img, 0, 0, that.width, that.height);
-        socket.emit('frame'); // recursive event
+        socket.emit('frame', data.nodeIdx); // loop event
       };
     },
     handleClick(e) {
@@ -79,21 +80,30 @@ var IOT = React.createClass({
       };
     },
     componentDidMount() {
+      socket.on('connect', this.onConnect);
       socket.on('frame', this.onFrame);
       socket.on('changeIoNode', this.onChangeIoNode);
       socket.on('usersInfo', this.onUsersInfo);
       socket.on('nodesInfo', this.onNodesInfo);
-
+    },
+    onConnect(){
       // initial requests
       socket.emit('usersInfo');
       socket.emit('nodesInfo');
-      socket.emit('frame');
+      socket.emit('frame', this.state.activeNode);
     },
     onFrame(data) {
-      this.refs.viewer.onFrame(data);
+      if (data.nodeIdx === this.state.activeNode) {
+        this.refs.viewer.onFrame(data);
+      } else {
+        // end of loop event
+      }
     },
     onChangeIoNode(data) {
       this.setState({activeNode: data.activeNode});
+      // start new loop event
+      this.refs.viewer.clear();
+      socket.emit('frame', this.state.activeNode);
     },
     onUsersInfo(data) {
       this.setState({users: data});
@@ -109,8 +119,7 @@ var IOT = React.createClass({
               <IoNodeTab
                 nodes={this.state.nodes}
                 activeNode={this.state.activeNode} />
-              <ImageViewer ref="viewer"
-                activeNode={this.state.activeNode} />
+              <ImageViewer ref="viewer" />
             </div>
             <div className="col-sm-5 col-xs-12">
               <UserList users={this.state.users} />

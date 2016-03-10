@@ -25,12 +25,6 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
   var io_namespace = settings.io_namespace;
   var interval_ms = settings.interval_ms;
 
-  // default camera interval
-  io_nodes.forEach(function(io_node) {
-    var camera = safeget(io_node, 'camera');
-    safecall(camera, 'changeInterval', 1000, function(){});
-  });
-
   // express page
   app.get(app_namespace, function(req, res){
       // *** check login user ***
@@ -39,6 +33,12 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
       } else {
         res.redirect('/');
       }
+  });
+
+  // default camera interval
+  io_nodes.forEach(function(io_node) {
+    var camera = safeget(io_node, 'camera');
+    safecall(camera, 'changeInterval', 1000, function(){});
   });
 
   var user_list = [];
@@ -99,13 +99,14 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
 
       // event : emit captured frame
       var preemit_ms = Date.now();
-      socket.on('frame', function() {
+      socket.on('frame', function(node_idx) {
+          console.log(node_idx);
           // control emit interval
           var next_ms = preemit_ms + interval_ms - Date.now();
           if (next_ms < 0) next_ms = 0;
           setTimeout(function() {
             safecall(camera, 'get', function(ret) {
-                socket.emit('frame', ret);
+                socket.emit('frame', {img: ret, nodeIdx: node_idx});
                 preemit_ms = Date.now();
             });
           }, next_ms);
