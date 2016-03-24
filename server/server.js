@@ -10,17 +10,33 @@ var config_local_base = 'io_node_local';
 // require
 var body_parser = require('body-parser');
 var conf = require('config');
+var fs = require('fs');
 var ejs = require('ejs');
 var express = require('express');
 var express_session = require('express-session');
-var http = require('http');
 var socketio = require('socket.io');
 var mongoose = require('mongoose');
 var connect_mongo = require('connect-mongo/es5');
+// require
+if (conf.encrypt) {
+  var https = require('https');
+} else {
+  var http = require('http');
+}
 
 // server instance
 var app = express();
-var server = http.createServer(app);
+if (conf.encrypt) {
+  // https server
+  var server = https.createServer({
+      key: fs.readFileSync(conf.encrypt.key),
+      cert: fs.readFileSync(conf.encrypt.cert),
+      ca: fs.readFileSync(conf.encrypt.ca),
+    }, app);
+} else {
+  // http server
+  var server = http.createServer(app);
+}
 var io = socketio(server);
 
 // express logger
@@ -38,7 +54,7 @@ mongoose.connect(conf.db.name, function(err) {
     if (err) {
       logger.error(err);
     } else {
-      logger.info('Connect mongodb');
+      logger.info('MongoDB connected');
     }
 });
 var user_model = mongoose.model('user', new mongoose.Schema({
@@ -77,7 +93,7 @@ var rpc_server = new RpcServer(io, conf.rpc.namespace, conf.rpc.passwd);
 var io_nodes = new IoNodeCollection();
 // Read io_node settings from config file
 for (var node_name in conf.get(config_local_base)) {
-  logger.info('Add local io_node: ' + node_name);
+  logger.info('Add local IoNode: ' + node_name);
   var local_config = conf.get([config_local_base, node_name].join('.'));
   io_nodes.push(new IoNode(node_name, local_config));
 }
@@ -86,10 +102,10 @@ var onIoNodesChanged = function(ret) {
   var node_name = ret.prop_array[0];
   var obj = rpc_server.getObject(node_name);
   if (ret.event_name === 'add') {
-    logger.info('New io_node: ' + node_name);
+    logger.info('Add remote IoNode: ' + node_name);
     io_nodes.addAndPoll(obj);
   } else if (ret.event_name === 'remove') {
-    logger.info('Remove io_node: ' + node_name);
+    logger.info('Remove remote IoNode: ' + node_name);
     io_nodes.removeAndPoll(obj);
   }
 };
@@ -163,7 +179,7 @@ app.post('/join', function(req, res){
 
 // logout (delete session)
 app.get('/logout', function(req, res) {
-    logger.info('Delete session: ' + req.session.user);
+    logger.info('Logout (delete session: ' + req.session.user + ')');
     req.session.destroy();
     res.redirect('/');
 });
