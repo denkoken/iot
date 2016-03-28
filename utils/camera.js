@@ -12,16 +12,30 @@ var simpleImage = function(encode){
   return mat.toBuffer(encode);
 };
 
-exports.Camera = function(id, ratio_array) {
+exports.Camera = function(settings) {
   var that = this;
 
-  var settings = { // TODO configure
-    size: {width: 320, height: 240},
-    interval_time: 1000,
-    min_interval_time: 100, // depend on camera device
-    resize: {enabled: false, width: 320, height: 240},
-    encode: {ext: '.jpg', jpegQuality: 70}
-  };
+  // fixed setting
+  var encode = {ext: '.jpg'};
+
+  // load settings
+  var id = settings.id || 0;
+  var size = settings.size || {width: 320, height: 240};
+  var ratio = settings.ratio ? settings.ratio[0] / settings.ratio[1]
+                             : 3.0 / 4.0;
+  var normal_interval_time = settings.normal_interval || 1000;
+  var active_interval_time = settings.active_interval || 100;
+  var resize = settings.resize || {enabled: false, width: 320, height: 240};
+  var rotate = settings.rotate || {enabled: false, degree: 0};
+  encode.jpegQuality = settings.jpeg_quality || 70;
+
+  logger.info('Camera settings:\n' +
+    '  id:' + id +
+    '  size:' + size.width + ',' + size.height  +
+    '  normal_interval:' + normal_interval_time +
+    '  active_interval_time:' + active_interval_time + '\n' +
+    '  resize:' + resize.enabled + ',' + resize.width + ',' + resize.height +
+    '  jpeg_quality:' + encode.jpegQuality);
 
   // open camera
   var camera = null;
@@ -33,25 +47,30 @@ exports.Camera = function(id, ratio_array) {
   }
 
   // encoded capture
-  var buff = simpleImage(settings.encode);
+  var buff = simpleImage(encode);
   // last update time
   var last_update = Date.now();
   // interval object
   var cap_interval = null;
+  // current interval ms
+  var cur_interval_time = normal_interval_time;
 
   // capture
   var update = function() {
     var diff = Date.now() - last_update;
-    if (camera && diff > settings.min_interval_time){
+    if (camera && diff > cur_interval_time){
       camera.read(function(err, im) {
           if (!err) {
             // image resize
-            var resize = settings.resize;
             if (resize.enabled) {
               im.resize(resize.width, resize.height);
             }
+            // image rotate
+            if (rotate.enabled) {
+              im.rotate(rotate.degree);
+            }
             // save
-            buff = im.toBuffer(settings.encode);
+            buff = im.toBuffer(encode);
           }
           last_update = Date.now();
       });
@@ -61,13 +80,12 @@ exports.Camera = function(id, ratio_array) {
   // capture size
   this.setCaptureSize = function(width, height, callback) {
     if (!camera) return;
-    if (width) settings.size.width = width;
-    if (height) settings.size.height = height;
-    camera.setWidth(settings.size.width);
-    camera.setHeight(settings.size.height);
+    size.width = width;
+    size.height = height;
+    camera.setWidth(size.width);
+    camera.setHeight(size.height);
     logger.info('Set camera capture size (' +
-                settings.size.width + ', ' +
-                settings.size.height + ')');
+                size.width + ', ' + size.height + ')');
     if (callback) callback();
   };
 
@@ -77,18 +95,17 @@ exports.Camera = function(id, ratio_array) {
   };
 
   // capture interval
-  this.changeInterval = function(ms, callback) {
+  this.changeInterval = function(active, callback) {
     // lower limit
-    if (ms < settings.min_interval_time){
-      ms = settings.min_interval_time;
-    }
-    logger.info('Change camera capture interval (' + ms + ' ms)');
+    var ms = active ? active_interval_time : normal_interval_time;
+    logger.info('Change camera capture interval (' +
+      ms + 'ms/' + (active ? 'active' : 'normal') + ')');
 
     // clear
     clearInterval(cap_interval);
 
     // new interval
-    settings.interval_time = ms;
+    cur_interval_time = ms;
     cap_interval = setInterval(function () {
       update();
     }, ms);
@@ -96,12 +113,11 @@ exports.Camera = function(id, ratio_array) {
     if (callback) callback();
   };
 
-  var ratio = ratio_array[0] / ratio_array[1];
   this.getRatio = function(callback) {
       callback(ratio);
   };
 
   // initial settings
   this.setCaptureSize();
-  this.changeInterval(settings.interval_time);
+  this.changeInterval(cur_interval_time);
 };

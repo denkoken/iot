@@ -4,6 +4,7 @@ var logger = log4js.getLogger('system');
 var rpc_wrapper = require('../../utils/rpc_wrapper.js');
 var safeget = rpc_wrapper.safeget;
 var safecall = rpc_wrapper.safecall;
+var waitcall = rpc_wrapper.waitcall;
 
 
 var emitUsersInfo = function(socket, user_list, broadcast) {
@@ -85,7 +86,11 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
         if (0 <= idx && idx < io_nodes.length) {
           camera = safeget(io_nodes[idx], 'camera');
           serial = safeget(io_nodes[idx], 'serial');
-          socket.emit('changeIoNode', {activeNode: idx});
+          // create emitting data
+          safecall(camera, 'getRatio', function(ratio) {
+              emit_data = {activeNode: idx, ratio: ratio};
+              socket.emit('changeIoNode', emit_data);
+          });
         } else {
           logger.warn('changeIoNode(): Invalid index (' + idx + ')');
         }
@@ -94,7 +99,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
 
       // scale capture interval (n_user: 0 -> 1)
       if (user_list.length === 1) {
-        safecall(camera, 'changeInterval', 100, function(){});
+        safecall(camera, 'changeInterval', true, function(){}); // active
       }
 
       // event : emit captured frame
@@ -155,7 +160,7 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
 
           // scale capture interval (n_user: 1 -> 0)
           if (user_list.length === 0) {
-            safecall(camera, 'changeInterval', 1000, function(){});
+            safecall(camera, 'changeInterval', false, function(){}); // normal
           }
       });
   });

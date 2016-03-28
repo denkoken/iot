@@ -43,8 +43,7 @@ exports.IoNode = function(name, settings) {
   // camera
   if (settings.camera) {
     var Camera = require('./camera.js').Camera;
-    this.camera = new Camera(settings.camera.id,
-                             settings.camera.ratio);
+    this.camera = new Camera(settings.camera);
   } else {
     logger.info('IoNode: No camera mode');
   }

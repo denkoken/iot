@@ -36,14 +36,21 @@ var IoNodeTab = React.createClass({
 });
 
 var ImageViewer = React.createClass({
-    width : 1000,
-    height : 1000 * 3 / 4, // TODO ratio
+    getInitialState() {
+      return {
+        width : 1000, // max width
+        height : 1000 * 3 / 4,
+      };
+    },
     componentDidMount() {
       this.canvas = ReactDOM.findDOMNode(this.refs.canvas);
       this.ctx = this.canvas.getContext('2d');
     },
     clear() {
-      this.ctx.clearRect(0, 0, this.width, this.height);
+      this.ctx.clearRect(0, 0, this.state.width, this.state.height);
+    },
+    updateRatio(ratio) {
+      this.setState({height: this.state.width * ratio});
     },
     onFrame(data) {
       var that = this;
@@ -52,7 +59,7 @@ var ImageViewer = React.createClass({
       var img = new Image();
       img.src = 'data:image/jpeg;base64,' + b64jpg;
       img.onload = () => {
-        that.ctx.drawImage(img, 0, 0, that.width, that.height);
+        that.ctx.drawImage(img, 0, 0, that.state.width, that.state.height);
         socket.emit('frame', data.nodeIdx); // loop event
       };
     },
@@ -65,7 +72,7 @@ var ImageViewer = React.createClass({
     render() {
       return <canvas ref="canvas"
               className="img-responsive"
-              width={this.width} height={this.height}
+              width={this.state.width} height={this.state.height}
               style={{backgroundColor: 'grey'}}
               onClick={this.handleClick} />;
     }
@@ -101,8 +108,11 @@ var IOT = React.createClass({
     },
     onChangeIoNode(data) {
       this.setState({activeNode: data.activeNode});
-      // start new loop event
+      // clear canvas
       this.refs.viewer.clear();
+      // update ratio
+      this.refs.viewer.updateRatio(data.ratio);
+      // start new loop event
       socket.emit('frame', this.state.activeNode);
     },
     onUsersInfo(data) {

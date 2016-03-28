@@ -8,12 +8,30 @@
 //   },
   "io_node_local": {
     "local1" : {
-      "camera": { "id": 1, "ratio": [4, 3] }
+      "camera": {
+        "id": 1,
+        "ratio": [3, 4],
+        "size": {"width": 320, "height": 480},
+        "normal_interval": 1000,
+        "active_interval": 33,
+        "resize": {"enabled": false, "width": 320, "height": 240},
+        "rotate": {"enabled": false, "degree": 90},
+        "jpeg_quality": 70
+      }
     }
   },
   "io_node_remote": {
     "remote1" : {
-      "camera": { "id": 0 , "ratio": [3, 4] },
+      "camera": {
+        "id": 0,
+        "ratio": [3, 4],
+        "size": {"width": 320, "height": 480},
+        "normal_interval": 1000,
+        "active_interval": 33,
+        "resize": {"enabled": false, "width": 320, "height": 240},
+        "rotate": {"enabled": false, "degree": 0},
+        "jpeg_quality": 70
+      },
       "serial": { "dev": "/dev/ttyACM0", "mode": "serial" }
     }
   },
