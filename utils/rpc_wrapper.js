@@ -276,3 +276,25 @@ exports.safecall = function() {
     logger.debug('Undefined call: ' + func_name + '()');
   }
 };
+
+// --- Call method with waiting ---
+// example)
+//  `waitcall(ms, obj, 'method', arg1, arg2);` means `obj.method(arg1, arg2);`
+//  The argument ms is the calling method interval.
+//
+exports.waitcall = function() {
+  var ms = arguments[0];
+  var obj = arguments[1];
+  var func_name = arguments[2];
+  var args = Array.prototype.slice.call(arguments, 3);
+  if (obj && typeof obj === 'object' && obj[func_name]) {
+    // find method
+    obj[func_name].apply(obj, args);
+  } else {
+    // recursive call
+    setTimeout(function() {
+        console.log('recursive');
+        exports.waitcall.apply(null, arguments);
+    }, ms);
+  }
+};
