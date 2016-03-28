@@ -1,11 +1,11 @@
 // node-config allows c like comment statement.
 {
   // uncomment to use https server
-//   "encrypt": {
-//     "key" : "./ssl-cert/server.key",
-//     "cert" : "./ssl-cert/server.crt",
-//     "ca" : "./ssl-cert/ca.crt"
-//   },
+   "encrypt": {
+     "key" : "./ssl-cert/privkey.pem",
+     "cert" : "./ssl-cert/cert.pem",
+     "ca" : "./ssl-cert/chain.pem"
+   },
   "io_node_local": {
     "local1" : {
       "camera": {
