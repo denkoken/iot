@@ -26,8 +26,8 @@ sudo npm start <mode> # sudo is needed for serial.
 #### TODO ####
 - [ ] Usable admin page.
 - [x] Adaptive frame event on client.
-- [ ] Camera image rotation and arbitrary ratio.
+- [x] Camera image rotation and arbitrary ratio.
 - [ ] Use config for some settings.
 - [ ] Say command (or some tts) on io\_node
 - [ ] Chat application.
-- [ ] Encryption (express and socket.io).
+- [x] Encryption (express and socket.io).
