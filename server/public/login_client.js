@@ -30,9 +30,10 @@ var LoginForm = React.createClass({
     },
     handleSubmit(e) {
       e.preventDefault();
+      var pass = CryptoJS.SHA512(this.state.passwordValue);
       var data = {
         name: this.state.nameValue,
-        password: this.state.passwordValue
+        password: pass.toString(CryptoJS.enc.Base64)
       };
       $.ajax({
           url: this.url,
