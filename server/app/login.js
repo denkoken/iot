@@ -11,7 +11,7 @@ exports.registerLoginApp = function(app, user_model, settings) {
       if (req.session.user) {
         res.redirect(redirect);
       } else {
-        res.render('main.ejs', {script: 'login_client.js'});
+        res.render('login.ejs', {script: 'login_client.js'});
       }
   });
 

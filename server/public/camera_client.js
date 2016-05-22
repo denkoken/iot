@@ -133,8 +133,6 @@ var IOT = React.createClass({
             </div>
             <div className="col-sm-5 col-xs-12">
               <UserList users={this.state.users} />
-              <a href="/admin"> admin </a><br />
-              <a href="/logout"> logout </a>
             </div>
           </div>
         </div>
