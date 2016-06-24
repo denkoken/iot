@@ -5,6 +5,7 @@ var logger = log4js.getLogger('system');
 exports.registerLoginApp = function(app, user_model, settings) {
   var redirect = settings.redirect;
   var namespace = settings.namespace;
+  var debug_mode = settings.debug_mode;
 
   // login page
   app.get(namespace, function(req, res) {
@@ -28,7 +29,7 @@ exports.registerLoginApp = function(app, user_model, settings) {
             return;
           }
 
-          if (result.length === 0 && query.name !== 'debug') { // TODO remove debug
+          if (result.length === 0 && (!(debug_mode) || query.name !== 'debug')) { // TODO remove debug
             res.json({message: 'Invalid user name or password'});
           } else {
             if (req.session.user) {

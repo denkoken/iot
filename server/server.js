@@ -58,10 +58,8 @@ mongoose.connect(conf.db.name, function(err) {
     }
 });
 var user_model = mongoose.model('user', new mongoose.Schema({
-      id : String,
-      password : String,
-      username : String,
-      image : String
+      name : String,
+      password : String
     }, {
       collection : conf.db.collection_name
     }
@@ -120,7 +118,8 @@ rpc_server.start();
 // register applications
 Login.registerLoginApp(app, user_model, {
     namespace: '/login',
-    redirect: '/camera'
+    redirect: '/camera',
+    debug_mode: conf.debug_mode 
 }); // '/login'
 Viewer.registerCameraApp(app, io, io_nodes, {
     app_namespace: '/camera',
@@ -153,21 +152,19 @@ app.get('/join', function(req, res) {
 });
 
 app.post('/join', function(req, res){
-    var id = req.body.id;
+    var name = req.body.name;
     var password = req.body.password;
-    var username = req.body.username;
-    var image = 'image';
-    var query = {id: id, password: password, username: username, image: image};
-    logger.info('Create account : ' + id);
+    var query = {name: name, password: password};
+    logger.info('Create account : ' + name);
 
-    user_model.find({id: id}, function(err, result) {
+    user_model.find({name: name}, function(err, result) {
         if (err) {
           logger.error(err);
           return;
         }
 
         if (result.length === 0) {
-          logger.info('Create Account:' + id);
+          logger.info('Create Account:' + name);
           user_model.create(query , function(err, result) {
               if (err) {
                 logger.error(err);
@@ -176,7 +173,7 @@ app.post('/join', function(req, res){
               res.json({redirect: '/camera'});
           });
         } else {
-          res.json({message: id + ' is already exist'});
+          res.json({message: name + ' is already exist'});
         }
     });
 });
@@ -194,6 +191,6 @@ app.get('/*', function(req, res) {
 });
 
 // start listen
-server.listen(3000, function() {
-    logger.info('Listening on *:3000');
+server.listen(443, function() {
+    logger.info('Listening on *:443');
 });
