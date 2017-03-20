@@ -118,8 +118,8 @@ exports.registerCameraApp = function(app, io, io_nodes, settings) {
 
       // event : servo control
       socket.on('moveServo', function(data) {
-          var angle_x = parseInt(data.x * 50 + 60); // TODO configure
-          var angle_y = parseInt(data.y * 50 + 60);
+          var angle_x = parseInt(data.x * 20 + 20); // TODO configure
+          var angle_y = parseInt(data.y * 20 + 20);
           logger.debug('Servo move : ' + angle_x + ', ' + angle_y);
 
           safecall(serial, 'setCameraAngle', 0, angle_x, function() { // TODO configure
