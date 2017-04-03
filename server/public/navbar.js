@@ -10,7 +10,7 @@ var Navigation = React.createClass({
         <Navbar inverse>
           <Navbar.Header>
 	    <Navbar.Brand>
-              <a href="/">iot</a>
+              <a href="/">remote camera</a>
 	    </Navbar.Brand>
 	    <Navbar.Toggle />
 	  </Navbar.Header>

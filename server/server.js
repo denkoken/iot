@@ -2,7 +2,7 @@ var log4js = require('log4js');
 log4js.configure('../config/log.json');
 var logger = log4js.getLogger('system');
 
-logger.info('Start IOT Server');
+logger.info('Start Server');
 
 // config base name
 var config_local_base = 'io_node_local';

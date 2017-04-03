@@ -4,7 +4,7 @@ var ButtonInput = ReactBootstrap.ButtonInput;
 var Panel = ReactBootstrap.Panel;
 
 var loginFormTitle = (
-  <div className="text-center">IOT Login</div>
+  <div className="text-center">Remote Camera Login</div>
 );
 
 var LoginForm = React.createClass({

@@ -78,7 +78,7 @@ var ImageViewer = React.createClass({
     }
 });
 
-var IOT = React.createClass({
+var RemoteCamera = React.createClass({
     getInitialState() {
       return {
         activeNode: 0,
@@ -141,6 +141,6 @@ var IOT = React.createClass({
 });
 
 ReactDOM.render(
-  <IOT />,
+  <RemoteCamera />,
   document.getElementById('content')
 );
